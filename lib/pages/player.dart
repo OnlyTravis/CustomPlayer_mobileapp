@@ -2,6 +2,15 @@ import 'package:flutter/material.dart';
 
 import 'package:song_player/code/audio_handler.dart';
 
+String toTimeFormat(Duration duration) {
+  String negativeSign = duration.isNegative ? '-' : '';
+
+  String twoDigits(int n) => n.toString().padLeft(2, "0");
+  String twoDigitMinutes = twoDigits(duration.inMinutes.remainder(60).abs());
+  String twoDigitSeconds = twoDigits(duration.inSeconds.remainder(60).abs());
+  return "$negativeSign${duration.inHours > 0? "${twoDigits(duration.inHours)}:": ""}$twoDigitMinutes:$twoDigitSeconds";
+}
+
 class PlayerPage extends StatefulWidget {
   const PlayerPage({super.key});
 
@@ -48,7 +57,29 @@ class _PlayerPageState extends State<PlayerPage> {
         Duration duration = mediaState?.mediaItem?.duration ?? Duration.zero;
         Duration position = mediaState?.position ?? Duration.zero;
 
-        return 
+        return Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Slider(
+              min: 0,
+              max: duration.inSeconds.toDouble(),
+              value: position.inSeconds.toDouble(), 
+              onChanged: (new_value) {
+                audio_handler.seek(Duration(seconds: new_value.toInt()));
+              }
+            ),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(toTimeFormat(position)),
+                  Text(toTimeFormat(duration)),
+                ],
+              ),
+            ),
+          ],
+        );
       },
     );
   }
