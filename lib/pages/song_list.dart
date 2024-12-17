@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:song_player/code/audio_handler.dart';
 import 'package:song_player/code/permission.dart';
 
 class SongListPage extends StatefulWidget {
@@ -13,10 +14,16 @@ class _SongListPageState extends State<SongListPage> {
   List<String> song_file_list = [];
 
 
+  Future<void> updateSongList() async {
+    await audio_handler.updateSongList();
+    setState(() {
+      song_file_list = audio_handler.song_file_list;
+    });
+  }
+
   @override
   void initState() {
-    requestPermission(Permission.manageExternalStorage);
-
+    updateSongList();
     super.initState();
   }
 
@@ -27,6 +34,17 @@ class _SongListPageState extends State<SongListPage> {
         backgroundColor: Theme.of(context).colorScheme.onPrimary,
         title: const Text("Song List"),
       ),
+      body: _SongList(),
+    );
+  }
+
+  Widget _SongList() {
+    return ListView(
+      children: [...song_file_list.map((file_name) => Card(
+        child: ListTile(
+          title: Text(file_name),
+        ),
+      ))],
     );
   }
 }

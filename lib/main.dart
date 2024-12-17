@@ -1,24 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:permission_handler/permission_handler.dart';
+
 import 'package:song_player/code/audio_handler.dart';
-
-import 'package:song_player/code/permission.dart';
 import 'package:song_player/pages/song_list.dart';
+import 'package:song_player/pages/player.dart';
 
-void main() {
+Future<void> main() async {
+  await initAudioHandler();
+
   runApp(const SongPlayerApp());
 }
 
 class SongPlayerApp extends StatelessWidget {
   const SongPlayerApp({super.key});
 
-  Future<void> initApp() async {
-    initAudioHandler();
-  }
 
   @override
   Widget build(BuildContext context) {
-    initApp();
 
     return MaterialApp(
       title: 'Song Player',
@@ -48,6 +45,12 @@ class _AppNavigationWrapState extends State<AppNavigationWrap> {
   Widget build(BuildContext context) {
     return Scaffold(
       bottomNavigationBar: NavigationBar(
+        onDestinationSelected: (int index) {
+          setState(() {
+            current_page_index = index;
+          });
+        },
+        selectedIndex: current_page_index,
         destinations: const [
           NavigationDestination(
             icon: Icon(Icons.list), 
@@ -60,7 +63,8 @@ class _AppNavigationWrapState extends State<AppNavigationWrap> {
         ]
       ),
       body: [
-        SongListPage()
+        SongListPage(),
+        PlayerPage()
       ][current_page_index],
     );
   }
