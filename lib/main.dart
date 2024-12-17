@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:song_player/code/audio_handler.dart';
 
 import 'package:song_player/code/permission.dart';
 import 'package:song_player/pages/song_list.dart';
@@ -12,8 +13,7 @@ class SongPlayerApp extends StatelessWidget {
   const SongPlayerApp({super.key});
 
   Future<void> initApp() async {
-    await requestPermission(Permission.manageExternalStorage);
-    
+    initAudioHandler();
   }
 
   @override
