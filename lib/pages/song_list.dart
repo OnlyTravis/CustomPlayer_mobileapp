@@ -44,7 +44,7 @@ class _SongListPageState extends State<SongListPage> {
           trailing: Wrap(
             children: [
               IconButton(
-                onPressed: () => audio_handler.addSongToQueue(file_name), 
+                onPressed: () => audio_handler.appendSongToQueue(file_name), 
                 icon: Icon(Icons.add)
               ),
               IconButton(

@@ -94,8 +94,16 @@ class _PlayerPageState extends State<PlayerPage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             IconButton(
+              onPressed: audio_handler.skipToPrevious, 
+              icon: Icon(Icons.skip_previous),
+            ),
+            IconButton(
               onPressed: is_playing?audio_handler.pause: audio_handler.play, 
               icon: Icon(is_playing?Icons.pause : Icons.play_arrow),
+            ),
+            IconButton(
+              onPressed: audio_handler.skipToNext, 
+              icon: Icon(Icons.skip_next),
             ),
           ],
         );

@@ -34,6 +34,7 @@ class MusicHandler extends BaseAudioHandler with SeekHandler {
     updateSongList();
 
     _listenForDurationChanges();
+    _listenForCurrentSongIndexChanges();
     audio_player.playbackEventStream.map(_transformEvent).pipe(playbackState);
   }
 
@@ -83,22 +84,22 @@ class MusicHandler extends BaseAudioHandler with SeekHandler {
     if (index == -1) return;
 
     if (queue.value.isEmpty) {
-      addSongToQueue(file_name);
+      appendSongToQueue(file_name);
       await audio_player.play();
       return;
     }
 
     MediaItem audio_item = toMediaItem(audio_source, file_name);
-    playlist.removeAt(index);
-    playlist.insert(index, audio_source);
-    queue.value.removeAt(index);
-    queue.value.insert(index, audio_item);
-    mediaItem.add(audio_item);
+    playlist.insert(index+1, audio_source);
+    queue.value.insert(index+1, audio_item);
 
-    await audio_player.play();
+    // To-do : Change this when I know wtf to do
+    Future.delayed(const Duration(milliseconds: 200)).then((val) async {
+      await audio_player.seekToNext();
+    });
   }
   
-  Future<void> addSongToQueue(String file_name) async {
+  Future<void> appendSongToQueue(String file_name) async {
     final UriAudioSource audio_source = AudioSource.file("$music_folder_path/$file_name");
     playlist.add(audio_source);
 
@@ -148,9 +149,22 @@ class MusicHandler extends BaseAudioHandler with SeekHandler {
     });
   }
 
+  void _listenForCurrentSongIndexChanges() {
+    audio_player.currentIndexStream.listen((index) {
+      final playlist = queue.value;
+      if (index == null || playlist.isEmpty) return;
+      if (audio_player.shuffleModeEnabled) {
+        index = audio_player.shuffleIndices!.indexOf(index);
+      }
+      mediaItem.add(playlist[index]);
+    });
+  }
+
   @override Future<void> play() => audio_player.play();
   @override Future<void> pause() => audio_player.pause();
   @override Future<void> seek(Duration position) => audio_player.seek(position);
+  @override Future<void> skipToNext() => audio_player.seekToNext();
+  @override Future<void> skipToPrevious() => audio_player.seekToPrevious();
   @override Future<void> stop() => audio_player.stop();
 }
 

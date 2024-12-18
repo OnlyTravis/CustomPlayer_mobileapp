@@ -19,7 +19,6 @@ class _QueuePageState extends State<QueuePage> {
         stream: audio_handler.queue, 
         builder: (context, snapshot) {
           final queue = snapshot.data ?? [];
-          print(snapshot.data);
 
           return ListView(
             children: [...queue.asMap().entries.map((entry) => 
