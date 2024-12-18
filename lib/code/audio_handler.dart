@@ -92,6 +92,7 @@ class MusicHandler extends BaseAudioHandler with SeekHandler {
     MediaItem audio_item = toMediaItem(audio_source, file_name);
     playlist.insert(index+1, audio_source);
     queue.value.insert(index+1, audio_item);
+    queue.add(queue.value);
 
     // To-do : Change this when I know wtf to do
     Future.delayed(const Duration(milliseconds: 200)).then((val) async {
