@@ -6,6 +6,7 @@ import 'package:rxdart/rxdart.dart';
 import 'dart:io';
 
 import 'package:song_player/code/permission.dart';
+import 'package:song_player/code/database.dart';
 
 late MusicHandler audio_handler;
 final List<String> accepted_formats = [".m4a", ".mp3", ".mp4"];
@@ -78,13 +79,31 @@ class MusicHandler extends BaseAudioHandler with SeekHandler {
 
   Future<void> replaceCurrentSong(String file_name) async {
     final UriAudioSource audio_source = AudioSource.file("$music_folder_path/$file_name");
-    playlist.add(audio_source);
+    int index = audio_player.currentIndex ?? -1;
+    if (index == -1) return;
 
-    //final newQueue = queue.value..removeAt(0)..insert(0, toMediaItem(file_name));
-    queue.add([toMediaItem(audio_source, file_name)]);
-    queue.add(queue.value);
+    if (queue.value.isEmpty) {
+      addSongToQueue(file_name);
+      await audio_player.play();
+      return;
+    }
+
+    MediaItem audio_item = toMediaItem(audio_source, file_name);
+    playlist.removeAt(index);
+    playlist.insert(index, audio_source);
+    queue.value.removeAt(index);
+    queue.value.insert(index, audio_item);
+    mediaItem.add(audio_item);
 
     await audio_player.play();
+  }
+  
+  Future<void> addSongToQueue(String file_name) async {
+    final UriAudioSource audio_source = AudioSource.file("$music_folder_path/$file_name");
+    playlist.add(audio_source);
+
+    queue.value.add(toMediaItem(audio_source, file_name));
+    queue.add(queue.value);
   }
 
   PlaybackState _transformEvent(PlaybackEvent event) {
@@ -118,9 +137,9 @@ class MusicHandler extends BaseAudioHandler with SeekHandler {
 
   void _listenForDurationChanges() {
     audio_player.durationStream.listen((duration) {
-      final index = audio_player.currentIndex;
+      int index = audio_player.currentIndex ?? -1;
       final newQueue = queue.value;
-      if (index == null || newQueue.isEmpty) return;
+      if (index == -1 || newQueue.isEmpty) return;
       final oldMediaItem = newQueue[index];
       final newMediaItem = oldMediaItem.copyWith(duration: duration);
       newQueue[index] = newMediaItem;

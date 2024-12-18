@@ -41,10 +41,18 @@ class _SongListPageState extends State<SongListPage> {
       children: [...song_file_list.map((file_name) => Card(
         child: ListTile(
           title: Text(file_name),
-          trailing: IconButton(
-            onPressed: () => audio_handler.replaceCurrentSong(file_name), 
-            icon: Icon(Icons.play_arrow)
-          ),
+          trailing: Wrap(
+            children: [
+              IconButton(
+                onPressed: () => audio_handler.addSongToQueue(file_name), 
+                icon: Icon(Icons.add)
+              ),
+              IconButton(
+                onPressed: () => audio_handler.replaceCurrentSong(file_name), 
+                icon: Icon(Icons.play_arrow)
+              ),
+            ],
+          )
         ),
       ))],
     );

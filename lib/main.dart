@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 
 import 'package:song_player/code/audio_handler.dart';
+import 'package:song_player/code/database.dart';
+import 'package:song_player/pages/queue.dart';
 import 'package:song_player/pages/song_list.dart';
 import 'package:song_player/pages/player.dart';
 
 Future<void> main() async {
   await initAudioHandler();
+  await initDatabase();
 
   runApp(const SongPlayerApp());
 }
@@ -59,12 +62,17 @@ class _AppNavigationWrapState extends State<AppNavigationWrap> {
           NavigationDestination(
             icon: Icon(Icons.audiotrack), 
             label: "Player",
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.queue_music), 
+            label: "Queue",
           )
         ]
       ),
       body: [
         SongListPage(),
-        PlayerPage()
+        PlayerPage(),
+        QueuePage(),
       ][current_page_index],
     );
   }
