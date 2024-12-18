@@ -54,6 +54,7 @@ class _PlayerPageState extends State<PlayerPage> {
       stream: mediaStateStream,
       builder: (context, snapshot) {
         final mediaState = snapshot.data;
+
         Duration duration = mediaState?.mediaItem?.duration ?? Duration.zero;
         Duration position = mediaState?.position ?? Duration.zero;
 

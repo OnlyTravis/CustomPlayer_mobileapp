@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:song_player/code/audio_handler.dart';
-import 'package:song_player/code/permission.dart';
 
 class SongListPage extends StatefulWidget {
   const SongListPage({super.key});
@@ -43,6 +41,10 @@ class _SongListPageState extends State<SongListPage> {
       children: [...song_file_list.map((file_name) => Card(
         child: ListTile(
           title: Text(file_name),
+          trailing: IconButton(
+            onPressed: () => audio_handler.replaceCurrentSong(file_name), 
+            icon: Icon(Icons.play_arrow)
+          ),
         ),
       ))],
     );
