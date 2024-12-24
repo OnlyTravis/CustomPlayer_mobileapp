@@ -14,6 +14,7 @@ class DatabaseHandler {
   } 
 
   Future<void> initDatabase() async {
+    /*
     db = await openDatabase('Song_Player.db', onCreate: (Database database, int version) async {
       await database.execute('''
         CREATE TABLE Songs (
@@ -29,6 +30,7 @@ class DatabaseHandler {
         )
       ''');
     });
+    */
   }
 
   Future<void> createTag(tag) async {

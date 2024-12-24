@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:song_player/code/audio_handler.dart';
+import 'package:video_player/video_player.dart';
 
 String toTimeFormat(Duration duration) {
   String negativeSign = duration.isNegative ? '-' : '';
@@ -19,6 +20,16 @@ class PlayerPage extends StatefulWidget {
 }
 
 class _PlayerPageState extends State<PlayerPage> {
+
+  @override
+  void initState() {
+    audio_handler.queue.listen((queue) {
+      if (mounted) setState(() {});
+    });
+
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -30,6 +41,14 @@ class _PlayerPageState extends State<PlayerPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            Center(
+              child: audio_handler.video_controller.value.isInitialized
+                  ? AspectRatio(
+                      aspectRatio: audio_handler.video_controller.value.aspectRatio,
+                      child: VideoPlayer(audio_handler.video_controller),
+                    )
+                  : Container(),
+            ),
             _mediaNameBar(),
             _mediaProgressBar(),
             _mediaControlBar(),
@@ -51,7 +70,7 @@ class _PlayerPageState extends State<PlayerPage> {
 
   Widget _mediaProgressBar() {
     return StreamBuilder<MediaState>(
-      stream: mediaStateStream,
+      stream: audio_handler.mediaStateStream,
       builder: (context, snapshot) {
         final mediaState = snapshot.data;
 

@@ -1,5 +1,7 @@
+import 'dart:async';
+
 import 'package:audio_service/audio_service.dart';
-import 'package:just_audio/just_audio.dart';
+import 'package:video_player/video_player.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:rxdart/rxdart.dart';
@@ -9,7 +11,23 @@ import 'package:song_player/code/permission.dart';
 import 'package:song_player/code/database.dart';
 
 late MusicHandler audio_handler;
+
 final List<String> accepted_formats = [".m4a", ".mp3", ".mp4"];
+
+class Song {
+  final String song_name;
+  final String song_path;
+
+  Song(this.song_name, this.song_path);
+}
+
+class MediaState {
+  final MediaItem? mediaItem;
+  final Duration position;
+
+  MediaState(this.mediaItem, this.position);
+}
+
 
 Future<void> initAudioHandler() async {
   audio_handler = await AudioService.init(
@@ -17,25 +35,95 @@ Future<void> initAudioHandler() async {
     config: const AudioServiceConfig(
       androidNotificationChannelId: 'com.mycompany.myapp.audio',
       androidNotificationChannelName: 'Audio playback',
+      androidNotificationOngoing: true,
+      androidStopForegroundOnPause: true,
     ),
   );
 }
 
 class MusicHandler extends BaseAudioHandler with SeekHandler {
-  final AudioPlayer audio_player = AudioPlayer();
+  late VideoPlayerController video_controller;
+  late StreamSubscription<PlaybackState> subscription;
+  late StreamController<PlaybackState> streamController;
+  List<Song> song_queue = [];
+  int current_queue_index = 0;
+  bool inited = false;
 
-  final playlist = ConcatenatingAudioSource(children: []);
   String music_folder_path = "";
-  List<String> song_file_list = [];
+  List<String> song_path_list = [];
+
+  Function? _videoPlay;
+  Function? _videoPause;
+  Function? _videoSeek;
+  Function? _videoStop;
 
   MusicHandler() {
-    audio_player.setAudioSource(playlist);
-
+    video_controller = VideoPlayerController.asset("assets/a.mp4");
     updateSongList();
+  }
 
-    _listenForDurationChanges();
-    _listenForCurrentSongIndexChanges();
-    audio_player.playbackEventStream.map(_transformEvent).pipe(playbackState);
+
+  /* INITS */
+
+  void setVideoFunctions(Function play, Function pause, Function seek, Function stop) {
+    _videoPlay = play;
+    _videoPause = pause;
+    _videoSeek = seek;
+    _videoStop = stop;
+    //mediaItem.add(_item);
+  }
+
+  void initializeStreamController(VideoPlayerController? videoPlayerController) {
+    bool _isPlaying() => videoPlayerController?.value.isPlaying ?? false;
+
+    AudioProcessingState _processingState() {
+      if (videoPlayerController == null) return AudioProcessingState.idle;
+      if (videoPlayerController.value.isInitialized) return AudioProcessingState.ready;
+      return AudioProcessingState.idle;
+    }
+
+    Duration _bufferedPosition() {
+      DurationRange? currentBufferedRange = videoPlayerController?.value.buffered.firstWhere((durationRange) {
+        Duration position = videoPlayerController.value.position;
+        bool isCurrentBufferedRange = durationRange.start < position && durationRange.end > position;
+        return isCurrentBufferedRange;
+      });
+      if (currentBufferedRange == null) return Duration.zero;
+      return currentBufferedRange.end;
+    }
+
+    void _addVideoEvent() {
+      streamController.add(PlaybackState(
+        controls: [
+          MediaControl.rewind,
+          if (_isPlaying()) MediaControl.pause else MediaControl.play,
+          MediaControl.stop,
+          MediaControl.fastForward,
+        ],
+        systemActions: const {
+          MediaAction.seek,
+          MediaAction.seekForward,
+          MediaAction.seekBackward,
+        },
+        androidCompactActionIndices: const [0, 1, 3],
+        processingState: _processingState(),
+        playing: _isPlaying(),
+        updatePosition: videoPlayerController?.value.position ?? Duration.zero,
+        bufferedPosition: _bufferedPosition(),
+        speed: videoPlayerController?.value.playbackSpeed ?? 1.0,
+      ));
+    }
+
+    void startStream() {
+      videoPlayerController?.addListener(_addVideoEvent);
+    }
+
+    void stopStream() {
+      videoPlayerController?.removeListener(_addVideoEvent);
+      streamController.close();
+    }
+
+    streamController = StreamController<PlaybackState>(onListen: startStream, onPause: stopStream, onResume: startStream, onCancel: stopStream);
   }
 
   Future<void> updateSongList() async {
@@ -61,9 +149,32 @@ class MusicHandler extends BaseAudioHandler with SeekHandler {
       .where((obj) => isMediaFile(obj.path))
       .map((obj) => obj.path.substring(folder_path.length+1))
       .toList();
-    song_file_list = file_list;
+    song_path_list = file_list;
+  }
+  
+
+
+  /* FUNCTIONS */
+
+  // Adds a song to the end of queue
+  void addToQueue(Song song) async {
+    song_queue.add(song);
+    if (song_queue.length == current_queue_index+1) {
+      playFile(song);
+    }
+    queue.add(queue.value);
   }
 
+  // Gets song list (names)  -- todo : fetch from database first, ifnull -> toFileName()
+  List<Song> get song_list {
+    return song_path_list.map((song_path) => Song(toFileName(song_path), song_path)).toList();
+  }
+
+
+
+  /* UTILS */
+
+  // Checks if a file is of media file format (e.g. mp3, m4a...)
   bool isMediaFile(String file_path) {
     for (final format in accepted_formats) {
       if (file_path.endsWith(format)) return true;
@@ -71,114 +182,82 @@ class MusicHandler extends BaseAudioHandler with SeekHandler {
     return false;
   }
 
-  MediaItem toMediaItem(UriAudioSource audio_source, String file_name) {
+  // Converts file path into file name
+  String toFileName(String file_path) {
+    return file_path.split("/").last;
+  }
+
+  // Creates a MediaItem from file name
+  MediaItem toMediaItem(Song song, Duration duration) {
     return MediaItem(
-      id: file_name, 
-      title: file_name.split(".")[0],
+      id: song.song_path,
+      title: song.song_name,
+      duration: duration,
     );
   }
 
-  Future<void> replaceCurrentSong(String file_name) async {
-    final UriAudioSource audio_source = AudioSource.file("$music_folder_path/$file_name");
-    int index = audio_player.currentIndex ?? -1;
-    if (index == -1) return;
+  // Plays a Media file
+  Future<void> playFile(Song song) async {
+    // 1. Remove Current Video Controller
+    if (inited) await subscription.cancel();
+    await video_controller.pause();
+    await video_controller.dispose();
 
-    if (queue.value.isEmpty) {
-      appendSongToQueue(file_name);
-      await audio_player.play();
-      return;
-    }
-
-    MediaItem audio_item = toMediaItem(audio_source, file_name);
-    playlist.insert(index+1, audio_source);
-    queue.value.insert(index+1, audio_item);
-    queue.add(queue.value);
-
-    // To-do : Change this when I know wtf to do
-    Future.delayed(const Duration(milliseconds: 200)).then((val) async {
-      await audio_player.seekToNext();
-    });
-  }
-  
-  Future<void> appendSongToQueue(String file_name) async {
-    final UriAudioSource audio_source = AudioSource.file("$music_folder_path/$file_name");
-    playlist.add(audio_source);
-
-    queue.value.add(toMediaItem(audio_source, file_name));
-    queue.add(queue.value);
-  }
-
-  PlaybackState _transformEvent(PlaybackEvent event) {
-    return PlaybackState(
-      controls: [
-        MediaControl.rewind,
-        if (audio_player.playing) MediaControl.pause else MediaControl.play,
-        MediaControl.stop,
-        MediaControl.fastForward,
-      ],
-      systemActions: const {
-        MediaAction.seek,
-        MediaAction.seekForward,
-        MediaAction.seekBackward,
-      },
-      androidCompactActionIndices: const [0, 1, 3],
-      processingState: const {
-        ProcessingState.idle: AudioProcessingState.idle,
-        ProcessingState.loading: AudioProcessingState.loading,
-        ProcessingState.buffering: AudioProcessingState.buffering,
-        ProcessingState.ready: AudioProcessingState.ready,
-        ProcessingState.completed: AudioProcessingState.completed,
-      }[audio_player.processingState]!,
-      playing: audio_player.playing,
-      updatePosition: audio_player.position,
-      bufferedPosition: audio_player.bufferedPosition,
-      speed: audio_player.speed,
-      queueIndex: event.currentIndex,
+    // 2. Init New Video Controller
+    video_controller = VideoPlayerController.file(
+      File("$music_folder_path/${song.song_path}"),
+      videoPlayerOptions: VideoPlayerOptions(
+        mixWithOthers: true,
+        allowBackgroundPlayback: true
+      )
     );
-  }
+    await video_controller.initialize();
+    await video_controller.setLooping(true);
 
-  void _listenForDurationChanges() {
-    audio_player.durationStream.listen((duration) {
-      int index = audio_player.currentIndex ?? -1;
-      final newQueue = queue.value;
-      if (index == -1 || newQueue.isEmpty) return;
-      final oldMediaItem = newQueue[index];
-      final newMediaItem = oldMediaItem.copyWith(duration: duration);
-      newQueue[index] = newMediaItem;
-      queue.add(newQueue);
-      mediaItem.add(newMediaItem);
+    // 3. Setup audio handler for new video controller
+    audio_handler.setVideoFunctions(video_controller.play, video_controller.pause, video_controller.seekTo, () {
+      video_controller.seekTo(Duration.zero);
+      video_controller.pause();
     });
-  }
 
-  void _listenForCurrentSongIndexChanges() {
-    audio_player.currentIndexStream.listen((index) {
-      final playlist = queue.value;
-      if (index == null || playlist.isEmpty) return;
-      if (audio_player.shuffleModeEnabled) {
-        index = audio_player.shuffleIndices!.indexOf(index);
-      }
-      mediaItem.add(playlist[index]);
+    audio_handler.initializeStreamController(video_controller);
+    subscription = audio_handler.streamController.stream.listen((data) {
+      audio_handler.playbackState.add(data);
     });
+    inited = true;
+
+    audio_handler.mediaItem.add(toMediaItem(song, video_controller.value.duration));
+    await video_controller.play();
+    queue.add(queue.value);
   }
 
-  @override Future<void> play() => audio_player.play();
-  @override Future<void> pause() => audio_player.pause();
-  @override Future<void> seek(Duration position) => audio_player.seek(position);
-  @override Future<void> skipToNext() => audio_player.seekToNext();
-  @override Future<void> skipToPrevious() => audio_player.seekToPrevious();
-  @override Future<void> stop() => audio_player.stop();
-}
+  @override Future<void> play() async => _videoPlay!();
+  @override Future<void> pause() async => _videoPause!();
+  @override Future<void> seek(Duration position) => _videoSeek!(position);
+  @override Future<void> stop() async => _videoStop!();
+  @override Future<bool> skipToNext() async {
+    if (song_queue.length < current_queue_index+1) return false;
 
-Stream<MediaState> get mediaStateStream =>
-  Rx.combineLatest2<MediaItem?, Duration, MediaState>(
-    audio_handler.mediaItem,
-    AudioService.position,
-    (mediaItem, position) => MediaState(mediaItem, position)
-  );
+    current_queue_index++;    
+    await playFile(song_queue[current_queue_index]);
+    queue.add(queue.value);
 
-class MediaState {
-  final MediaItem? mediaItem;
-  final Duration position;
+    return true;
+  }
+  @override Future<bool> skipToPrevious() async {
+    if (current_queue_index < 1) return false;
 
-  MediaState(this.mediaItem, this.position);
+    current_queue_index--;    
+    playFile(song_queue[current_queue_index]);
+    queue.add(queue.value);
+
+    return true;
+  }
+
+  Stream<MediaState> get mediaStateStream =>
+    Rx.combineLatest2<MediaItem?, Duration, MediaState>(
+      audio_handler.mediaItem,
+      AudioService.position,
+      (mediaItem, position) => MediaState(mediaItem, position)
+    );
 }

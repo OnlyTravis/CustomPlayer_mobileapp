@@ -18,14 +18,12 @@ class _QueuePageState extends State<QueuePage> {
       body: StreamBuilder(
         stream: audio_handler.queue, 
         builder: (context, snapshot) {
-          final queue = snapshot.data ?? [];
-
           return ListView(
-            children: [...queue.asMap().entries.map((entry) => 
+            children: [...audio_handler.song_queue.asMap().entries.map((entry) => 
               Card(
                 child: ListTile(
                   leading: Text((entry.key+1).toString()),
-                  title: Text(entry.value.title),
+                  title: Text(entry.value.song_name),
                 ))
               )
             ],

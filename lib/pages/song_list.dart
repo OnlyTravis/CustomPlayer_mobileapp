@@ -9,13 +9,12 @@ class SongListPage extends StatefulWidget {
 }
 
 class _SongListPageState extends State<SongListPage> {
-  List<String> song_file_list = [];
-
+  List<Song> song_list = [];
 
   Future<void> updateSongList() async {
     await audio_handler.updateSongList();
     setState(() {
-      song_file_list = audio_handler.song_file_list;
+      song_list = audio_handler.song_list;
     });
   }
 
@@ -38,17 +37,17 @@ class _SongListPageState extends State<SongListPage> {
 
   Widget _SongList() {
     return ListView(
-      children: [...song_file_list.map((file_name) => Card(
+      children: [...song_list.map((song) => Card(
         child: ListTile(
-          title: Text(file_name),
+          title: Text(song.song_name),
           trailing: Wrap(
             children: [
               IconButton(
-                onPressed: () => audio_handler.appendSongToQueue(file_name), 
+                onPressed: () => audio_handler.addToQueue(song), 
                 icon: Icon(Icons.add)
               ),
               IconButton(
-                onPressed: () => audio_handler.replaceCurrentSong(file_name), 
+                onPressed: () => audio_handler.addToQueue(song), 
                 icon: Icon(Icons.play_arrow)
               ),
             ],
