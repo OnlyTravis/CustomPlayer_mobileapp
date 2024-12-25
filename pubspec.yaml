@@ -17,6 +17,7 @@ dependencies:
   rxdart: ^0.28.0
   sqflite: ^2.4.1
   video_player: ^2.9.2
+  just_audio: ^0.9.42
 
 dev_dependencies:
   flutter_test:

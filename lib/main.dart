@@ -7,19 +7,17 @@ import 'package:song_player/pages/song_list.dart';
 import 'package:song_player/pages/player.dart';
 
 Future<void> main() async {
-  await initAudioHandler();
+  WidgetsFlutterBinding.ensureInitialized();
   await initDatabase();
-
+  await initAudioHandler();
   runApp(const SongPlayerApp());
 }
 
 class SongPlayerApp extends StatelessWidget {
   const SongPlayerApp({super.key});
 
-
   @override
   Widget build(BuildContext context) {
-
     return MaterialApp(
       title: 'Song Player',
       theme: ThemeData(
@@ -41,8 +39,28 @@ class AppNavigationWrap extends StatefulWidget {
   State<AppNavigationWrap> createState() => _AppNavigationWrapState();
 }
 
-class _AppNavigationWrapState extends State<AppNavigationWrap> {
+class _AppNavigationWrapState extends State<AppNavigationWrap> with WidgetsBindingObserver  {
   int current_page_index = 0;
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    switch (state) {
+      case AppLifecycleState.resumed:
+        audio_handler.setAppOpened(true);
+        break;
+      case AppLifecycleState.hidden:
+        audio_handler.setAppOpened(false);
+        break;
+      default:
+        break;
+    }
+  }
+
+  @override
+  void initState() {
+    WidgetsBinding.instance.addObserver(this);
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {

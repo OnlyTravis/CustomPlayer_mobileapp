@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:song_player/code/audio_handler.dart';
+import 'package:song_player/code/database.dart';
 
 class SongListPage extends StatefulWidget {
   const SongListPage({super.key});
@@ -9,6 +10,7 @@ class SongListPage extends StatefulWidget {
 }
 
 class _SongListPageState extends State<SongListPage> {
+  int opened_index = -1;
   List<Song> song_list = [];
 
   Future<void> updateSongList() async {
@@ -37,23 +39,54 @@ class _SongListPageState extends State<SongListPage> {
 
   Widget _SongList() {
     return ListView(
-      children: [...song_list.map((song) => Card(
-        child: ListTile(
-          title: Text(song.song_name),
-          trailing: Wrap(
+      children: [...song_list.asMap().entries.map((entry) => SongCard(entry.value, entry.key))],
+    );
+  }
+
+  void onSongCardTap(int index) {
+    if (opened_index == index) {
+      setState(() {
+        opened_index = -1;
+      });
+    } else {
+      setState(() {
+        opened_index = index;
+      });
+    }
+  }
+
+  Widget SongCard(Song song, int index) {
+    return Card(
+      child: Column(
+        children: [
+          ListTile(
+            title: Text(song.song_name),
+            subtitle: (index == opened_index)?Text("Author : ${song.author}"):null,
+            trailing: Wrap(
+              children: [
+                IconButton(
+                  onPressed: () => audio_handler.addToQueue(song), 
+                  icon: Icon(Icons.add)
+                ),
+                IconButton(
+                  onPressed: () => audio_handler.replaceCurrent(song), 
+                  icon: Icon(Icons.play_arrow)
+                ),
+              ],
+            ),
+            onTap: () => onSongCardTap(index),
+          ),
+          if (index == opened_index) Row(
+            mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              IconButton(
-                onPressed: () => audio_handler.addToQueue(song), 
-                icon: Icon(Icons.add)
-              ),
-              IconButton(
-                onPressed: () => audio_handler.addToQueue(song), 
-                icon: Icon(Icons.play_arrow)
-              ),
+              TextButton(
+                onPressed: () => {}, 
+                child: Text("Edit Song"),
+              )
             ],
           )
-        ),
-      ))],
+        ],
+      )
     );
   }
 }
