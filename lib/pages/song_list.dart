@@ -56,37 +56,40 @@ class _SongListPageState extends State<SongListPage> {
   }
 
   Widget SongCard(Song song, int index) {
-    return Card(
-      child: Column(
-        children: [
-          ListTile(
-            title: Text(song.song_name),
-            subtitle: (index == opened_index)?Text("Author : ${song.author}"):null,
-            trailing: Wrap(
-              children: [
-                IconButton(
-                  onPressed: () => audio_handler.addToQueue(song), 
-                  icon: Icon(Icons.add)
-                ),
-                IconButton(
-                  onPressed: () => audio_handler.replaceCurrent(song), 
-                  icon: Icon(Icons.play_arrow)
-                ),
-              ],
+    return GestureDetector(
+      onTap: () => onSongCardTap(index),
+      child: Card(
+        child: Column(
+          children: [
+            ListTile(
+              leading: Icon(Icons.audio_file),
+              title: Text(song.song_name),
+              subtitle: (index == opened_index)?Text("Author : ${song.author}"):null,
+              trailing: Wrap(
+                children: [
+                  IconButton(
+                    onPressed: () => audio_handler.addToQueue(song), 
+                    icon: Icon(Icons.add)
+                  ),
+                  IconButton(
+                    onPressed: () => audio_handler.replaceCurrent(song), 
+                    icon: Icon(Icons.play_arrow)
+                  ),
+                ],
+              ),
             ),
-            onTap: () => onSongCardTap(index),
-          ),
-          if (index == opened_index) Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              TextButton(
-                onPressed: () => {}, 
-                child: Text("Edit Song"),
-              )
-            ],
-          )
-        ],
-      )
+            if (index == opened_index) Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton(
+                  onPressed: () => {}, 
+                  child: Text("Edit Song"),
+                )
+              ],
+            )
+          ],
+        )
+      ),
     );
   }
 }
