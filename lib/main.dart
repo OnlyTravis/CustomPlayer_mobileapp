@@ -2,9 +2,13 @@ import 'package:flutter/material.dart';
 
 import 'package:song_player/code/audio_handler.dart';
 import 'package:song_player/code/database.dart';
+import 'package:song_player/pages/edit_song.dart';
 import 'package:song_player/pages/queue.dart';
 import 'package:song_player/pages/song_list.dart';
 import 'package:song_player/pages/player.dart';
+import 'package:song_player/widgets/NavigationBar.dart';
+
+ValueNotifier<int> route_change = ValueNotifier(0);
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -39,7 +43,7 @@ class AppNavigationWrap extends StatefulWidget {
   State<AppNavigationWrap> createState() => _AppNavigationWrapState();
 }
 
-class _AppNavigationWrapState extends State<AppNavigationWrap> with WidgetsBindingObserver  {
+class _AppNavigationWrapState extends State<AppNavigationWrap> with WidgetsBindingObserver {
   int current_page_index = 0;
 
   @override
@@ -59,34 +63,18 @@ class _AppNavigationWrapState extends State<AppNavigationWrap> with WidgetsBindi
   @override
   void initState() {
     WidgetsBinding.instance.addObserver(this);
+    route_change.addListener(() {
+      setState(() {
+        current_page_index = route_change.value;
+      });
+    });
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      bottomNavigationBar: NavigationBar(
-        onDestinationSelected: (int index) {
-          setState(() {
-            current_page_index = index;
-          });
-        },
-        selectedIndex: current_page_index,
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.list), 
-            label: "Song List",
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.audiotrack), 
-            label: "Player",
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.queue_music), 
-            label: "Queue",
-          )
-        ]
-      ),
+      bottomNavigationBar: CommonNavigationBar(),
       body: [
         SongListPage(),
         PlayerPage(),

@@ -20,7 +20,6 @@ class PlayerPage extends StatefulWidget {
 }
 
 class _PlayerPageState extends State<PlayerPage> {
-
   @override
   void initState() {
     audio_handler.queue.listen((queue) {

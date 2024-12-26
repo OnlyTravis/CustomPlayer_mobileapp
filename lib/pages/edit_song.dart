@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:song_player/code/audio_handler.dart';
 import 'package:song_player/code/database.dart';
+import 'package:song_player/widgets/NavigationBar.dart';
 
 class EditSongPage extends StatefulWidget {
   final Song song;
@@ -10,20 +10,22 @@ class EditSongPage extends StatefulWidget {
 }
 
 class _EditSongPageState extends State<EditSongPage> {
-  int editing = -1;
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.onPrimary,
-        title: Text("Song : ${widget.song.song_name}"),
+        title: Text("Editing : ${widget.song.song_name}"),
       ),
-      body: Column(
-        children: [
-          Text("Song Name : ${widget.song.song_name}")
-        ],
+      body: Padding(
+        padding: EdgeInsets.all(8),
+        child: Column(
+          children: [
+            Text("Song Name : ${widget.song.song_name}")
+          ],
+        ),
       ),
+      bottomNavigationBar: CommonNavigationBar(),
     );
   }
 }
