@@ -10,12 +10,14 @@ class EditSongPage extends StatefulWidget {
 }
 
 class _EditSongPageState extends State<EditSongPage> {
+  int editing = -1;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.onPrimary,
-        title: Text("Editing : ${widget.song.song_name}"),
+        title: Text("Song : ${widget.song.song_name}"),
       ),
       body: Column(
         children: [

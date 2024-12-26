@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:song_player/code/audio_handler.dart';
 import 'package:song_player/code/database.dart';
+import 'package:song_player/pages/edit_song.dart';
 
 class SongListPage extends StatefulWidget {
   const SongListPage({super.key});
@@ -55,6 +56,12 @@ class _SongListPageState extends State<SongListPage> {
     }
   }
 
+  void onSongCardView(Song song) {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) => EditSongPage(song: song))
+    );
+  }
+
   Widget SongCard(Song song, int index) {
     return GestureDetector(
       onTap: () => onSongCardTap(index),
@@ -82,8 +89,8 @@ class _SongListPageState extends State<SongListPage> {
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 TextButton(
-                  onPressed: () => {}, 
-                  child: Text("Edit Song"),
+                  onPressed: () => onSongCardView(song), 
+                  child: Text("View / Edit Song"),
                 )
               ],
             )
