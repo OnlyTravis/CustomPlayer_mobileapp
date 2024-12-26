@@ -12,19 +12,26 @@ class _QueuePageState extends State<QueuePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.onPrimary,
-        title: const Text("Song List"),
+        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+        title: const Text("Current Queue"),
       ),
       body: StreamBuilder(
         stream: audio_handler.queue, 
         builder: (context, snapshot) {
           return ListView(
-            children: [...audio_handler.song_queue.asMap().entries.map((entry) => 
-              Card(
+            children: [
+              if (audio_handler.song_queue.isEmpty) Card(
                 child: ListTile(
-                  leading: Text((entry.key+1).toString()),
-                  title: Text(entry.value.song_name),
-                ))
+                  title: Text("No Song In Queue.  :("),
+                )
+              ),
+              ...audio_handler.song_queue.asMap().entries.map((entry) => 
+                Card(
+                  child: ListTile(
+                    leading: Text((entry.key+1).toString()),
+                    title: Text(entry.value.song_name),
+                  )
+                )
               )
             ],
           );

@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:song_player/main.dart';
+import 'package:song_player/pages/player.dart';
+import 'package:song_player/pages/queue.dart';
+import 'package:song_player/pages/song_list.dart';
+import 'package:song_player/pages/tag_list.dart';
 
 class CommonNavigationBar extends StatefulWidget {
   const CommonNavigationBar({super.key});
@@ -9,27 +13,63 @@ class CommonNavigationBar extends StatefulWidget {
 }
 
 class _CommonNavigationBarState extends State<CommonNavigationBar> {
+  static int selected = 0;
+
   @override
   Widget build(BuildContext context) {
-    return NavigationBar(
-        onDestinationSelected: (int index) {
-          route_change.value = index;
-        },
-        selectedIndex: route_change.value,
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.list), 
-            label: "Song List",
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.audiotrack), 
-            label: "Player",
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.queue_music), 
-            label: "Queue",
-          )
-        ]
-      );
+    return Container(
+      color: Theme.of(context).colorScheme.primaryContainer,
+      padding: EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          NavigationButton("Song List", Icons.list, 0),
+          NavigationButton("Player", Icons.audiotrack, 1),
+          NavigationButton("Queue", Icons.queue_music, 2),
+          NavigationButton("Tags", Icons.tag, 3),
+        ],
+      ),
+    );
+  }
+
+  Widget NavigationButton(String title, IconData icon, int index) {
+    return GestureDetector(
+      onTap: () => button_navigationButtonOnPress(index),
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 5),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(10),
+          color: (selected == index)?const Color.fromARGB(44, 93, 93, 93):null,
+        ),
+        child: Column(
+          children: [
+            Icon(icon),
+            Text(title)
+          ],
+        ),
+      )
+    );
+  }
+
+  void button_navigationButtonOnPress(int index) {
+    setState(() {
+      selected = index;
+    });
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (context) => AppNavigationWrap(
+        child: routeFromIndex(index),
+      ))
+    );
+  }
+
+  Widget routeFromIndex(int index) {
+    switch (index) {
+      case 0: return SongListPage();
+      case 1: return PlayerPage();
+      case 2: return QueuePage();
+      case 3: return TagListPage();
+    }
+    return Container();
   }
 }

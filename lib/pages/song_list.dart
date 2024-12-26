@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:song_player/code/audio_handler.dart';
 import 'package:song_player/code/database.dart';
+import 'package:song_player/main.dart';
 import 'package:song_player/pages/edit_song.dart';
 
 class SongListPage extends StatefulWidget {
@@ -31,7 +32,7 @@ class _SongListPageState extends State<SongListPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.onPrimary,
+        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
         title: const Text("Song List"),
       ),
       body: _SongList(),
@@ -57,8 +58,8 @@ class _SongListPageState extends State<SongListPage> {
   }
 
   void onSongCardView(Song song) {
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (context) => EditSongPage(song: song))
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (context) => AppNavigationWrap(child: EditSongPage(song: song)))
     );
   }
 

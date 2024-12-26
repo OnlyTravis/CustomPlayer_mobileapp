@@ -27,17 +27,20 @@ class SongPlayerApp extends StatelessWidget {
       theme: ThemeData(
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color.fromARGB(255, 191, 239, 255),
-          brightness: Brightness.dark,
+          seedColor: const Color.fromARGB(255, 255, 202, 248),
+          brightness: Brightness.light,
         ),
       ),
-      home: AppNavigationWrap(),
+      home: AppNavigationWrap(
+        child: SongListPage(),
+      ),
     );
   }
 }
 
 class AppNavigationWrap extends StatefulWidget {
-  const AppNavigationWrap({super.key});
+  final Widget child;
+  const AppNavigationWrap({super.key, required this.child});
 
   @override
   State<AppNavigationWrap> createState() => _AppNavigationWrapState();
@@ -74,12 +77,17 @@ class _AppNavigationWrapState extends State<AppNavigationWrap> with WidgetsBindi
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      bottomNavigationBar: CommonNavigationBar(),
-      body: [
-        SongListPage(),
-        PlayerPage(),
-        QueuePage(),
-      ][current_page_index],
+      body: Column(
+        children: [
+          Expanded(
+            child: Container(
+              color: Theme.of(context).colorScheme.surfaceContainerHighest,
+              child: widget.child,
+            )
+          ),
+          CommonNavigationBar()
+        ]
+      ),
     );
   }
 }

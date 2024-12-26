@@ -216,7 +216,11 @@ class MusicHandler extends BaseAudioHandler with SeekHandler {
   }
   
   void replaceCurrent(Song song) async {
-    song_queue[current_queue_index] = song;
+    if (song_queue.isEmpty) {
+      song_queue.add(song);
+    } else {
+      song_queue[current_queue_index] = song;
+    }
     await playFile(song);
     queue.add(queue.value);
   }
