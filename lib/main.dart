@@ -2,10 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:song_player/code/audio_handler.dart';
 import 'package:song_player/code/database.dart';
-import 'package:song_player/pages/edit_song.dart';
-import 'package:song_player/pages/queue.dart';
 import 'package:song_player/pages/song_list.dart';
-import 'package:song_player/pages/player.dart';
 import 'package:song_player/widgets/NavigationBar.dart';
 
 ValueNotifier<int> route_change = ValueNotifier(0);

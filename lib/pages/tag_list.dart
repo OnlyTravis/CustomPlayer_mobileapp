@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:song_player/code/database.dart';
-import 'package:song_player/widgets/TagCard.dart';
+import 'package:song_player/code/utils.dart';
 
 class TagListPage extends StatefulWidget {
   const TagListPage({super.key});
@@ -28,8 +28,20 @@ class _TagListPageState extends State<TagListPage> {
   Future<void> button_renameTag(Tag tag) async {
 
   }
-  Future<void> button_deleteTag(Tag tag) async {
-    
+  void button_deleteTag(Tag tag) {
+    confirm(
+      context, 
+      "Confirm Deletion", 
+      "Are you sure you want to delete this tag? (${tag.tag_name})", 
+      () async {
+        if (!await db.deleteTag(tag.tag_id) && mounted) {
+          alert(context, "Failed to delete tag!");
+          return;
+        }
+        await initTagList();
+      },
+      () => {}
+    );
   }
 
   @override
@@ -85,31 +97,23 @@ class _CreateTagMenuState extends State<CreateTagMenu> {
       isCreating = !isCreating;
     });
   }
-
   Future<void> button_createTag() async {
     if (tag_name_controller.text.isEmpty || db.detectSqlInjection(tag_name_controller.text)) {
-      displaySnackBar("Please Enter a valid tag name ( without ' \" \\ )");
+      if (mounted) alert(context, "Please Enter a valid tag name ( without ' \" \\ )");
       return;
     }
 
     if (!await db.createTag(tag_name_controller.text, 0)) {// todo
-      displaySnackBar("Something went wrong while adding tag to database.");
+      if (mounted) alert(context, "Something went wrong while adding tag to database.");
       return;
     }
 
-    displaySnackBar("Tag \"${tag_name_controller.text}\" Added!");
-    widget.onAdd();
-  }
-
-  void displaySnackBar(String text) {
-    final snack_bar = SnackBar(
-      content: Text(text),
-      action: SnackBarAction(
-        label: "Dismiss", 
-        onPressed: ScaffoldMessenger.of(context).hideCurrentSnackBar
-      ),
-    );
-    ScaffoldMessenger.of(context).showSnackBar(snack_bar);
+    if (mounted) alert(context, "Tag \"${tag_name_controller.text}\" Added!");
+    await widget.onAdd();
+    setState(() {
+      isCreating = false;
+      tag_name_controller.text = "";
+    });
   }
 
   @override

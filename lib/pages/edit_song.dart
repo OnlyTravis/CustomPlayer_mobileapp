@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:song_player/code/database.dart';
+import 'package:song_player/code/utils.dart';
 import 'package:song_player/widgets/TagCard.dart';
 
 class EditSongPage extends StatefulWidget {
@@ -10,11 +11,10 @@ class EditSongPage extends StatefulWidget {
 }
 
 class _EditSongPageState extends State<EditSongPage> {
+  bool is_editing = false;
+  bool is_adding_tag = false;
+  List<Tag> song_tag_list = [];
   List<Tag> tag_list = [];
-
-  void button_toggleEditMode() {
-
-  }
 
   @override
   void initState() {
@@ -23,10 +23,31 @@ class _EditSongPageState extends State<EditSongPage> {
   }
 
   Future<void> initTagList() async {
-    final List<Tag> tmp = await db.getTagsFromSongId(widget.song.song_id);
+    final List<Tag> tmp_1 = await db.getTagsFromSongId(widget.song.song_id);
+    final List<Tag> tmp_2 = await db.getAllTags();
     setState(() {
-      tag_list = tmp;
+      song_tag_list = tmp_1;
+      tag_list = tmp_2;
     });
+  }
+
+  void button_toggleEditMode() {
+    setState(() {
+      is_editing = !is_editing;
+      if (!is_editing) {
+        is_adding_tag = false;
+      }
+    });
+  }
+  void button_onToggleAddTag() {
+    setState(() {
+      is_adding_tag = !is_adding_tag;
+    });
+  }
+  Future<void> button_onAddTag(Tag tag) async {
+    await db.addTagToSong(widget.song.song_id, tag.tag_id);
+    await initTagList();
+    if (mounted) alert(context, "Tag \"${tag.tag_name}\" Added to Song!");
   }
 
   @override
@@ -34,7 +55,7 @@ class _EditSongPageState extends State<EditSongPage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-        title: Text("Editing : ${widget.song.song_name}"),
+        title: Text("Viewing Song"),
       ),
       body: Padding(
         padding: EdgeInsets.all(8),
@@ -43,7 +64,8 @@ class _EditSongPageState extends State<EditSongPage> {
           children: [
             InfoTable(),
             SizedBox(height: 10),
-            ...TagList()
+            ...TagList(),
+            if (is_adding_tag) ...[SizedBox(height: 10), addTagMenu()]
           ],
         )
       ),
@@ -109,9 +131,10 @@ class _EditSongPageState extends State<EditSongPage> {
               Wrap(
                 direction: Axis.horizontal,
                 children: [
-                  ...tag_list.map((tag) => TagCard(
+                  ...song_tag_list.map((tag) => TagCard(
                     value: tag,
                   )),
+                  if (is_editing) addTagButton(),
                 ],
               )
             ],
@@ -119,5 +142,44 @@ class _EditSongPageState extends State<EditSongPage> {
         ),
       )
     ];
+  }
+  Widget addTagButton() {
+    return Card(
+      color: Theme.of(context).colorScheme.secondaryContainer,
+      child: SizedBox(
+        width: 40,
+        height: 40,
+        child: IconButton(
+          onPressed: button_onToggleAddTag, 
+          icon: Icon(Icons.add),
+        ),
+      ),
+    );
+  }
+  Widget addTagMenu() {
+    return Card(
+      child: Container(
+        width: double.infinity,
+        padding: EdgeInsets.all(6),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "Choose Tags to Add : ",
+              textScaler: TextScaler.linear(1.5),
+            ),
+            Wrap(
+              direction: Axis.horizontal,
+              children: [
+                ...tag_list.where((tag) => (song_tag_list.indexWhere((val) => val.tag_id == tag.tag_id) == -1)).map((tag) => TagCard(
+                  value: tag,
+                  onTap: button_onAddTag,
+                )),
+              ],
+            )
+          ],
+        ), 
+      ),
+    );
   }
 }

@@ -72,6 +72,12 @@ class DatabaseHandler {
         PRIMARY KEY (song_id, tag_id)
       )
     ''');
+    /*await db.execute('''
+      CREATE TABLE IF NOT EXISTS Playlists (
+        playlist_name TEXT UNIQUE,
+        
+      )
+    ''');*/
   }
 
   bool detectSqlInjection(String str_input) {
@@ -158,6 +164,10 @@ class DatabaseHandler {
     return true;
   }
 
+  Future<bool> createPlaylist(String playlist_name) async {
+    //wip
+    return true;
+  }
 
   Future<Song> getSongFromPath(String path) async {
     try {
