@@ -98,8 +98,8 @@ class _CreateTagMenuState extends State<CreateTagMenu> {
     });
   }
   Future<void> button_createTag() async {
-    if (tag_name_controller.text.isEmpty || db.detectSqlInjection(tag_name_controller.text)) {
-      if (mounted) alert(context, "Please Enter a valid tag name ( without ' \" \\ )");
+    if (tag_name_controller.text.isEmpty) {
+      if (mounted) alert(context, "Please Enter a valid tag name");
       return;
     }
 

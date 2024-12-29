@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:song_player/code/database.dart';
+import 'package:song_player/code/utils.dart';
 
 class PlaylistPage extends StatefulWidget {
   const PlaylistPage({super.key});
@@ -112,14 +114,29 @@ class Condition {
   Condition(this.condition, this.value);
 }
 
-class EmptyPlaylistMenu extends StatelessWidget {
-  EmptyPlaylistMenu({super.key, required this.onCancel});
-
+class EmptyPlaylistMenu extends StatefulWidget {
   final VoidCallback onCancel;
-  final TextEditingController list_name_controller = TextEditingController();
+  const EmptyPlaylistMenu({super.key, required this.onCancel});
 
-  void button_onCreatePlaylist() {
-    
+  @override
+  State<EmptyPlaylistMenu> createState() => _EmptyPlaylistMenuState();
+}
+class _EmptyPlaylistMenuState extends State<EmptyPlaylistMenu> {
+  final TextEditingController playlist_name_controller = TextEditingController();
+
+  Future<void> button_onCreatePlaylist() async {
+    if (playlist_name_controller.text.isEmpty) {
+      if (mounted) alert(context, "Please Enter a valid tag name");
+      return;
+    }
+
+    if (!await db.createPlaylist(playlist_name_controller.text, [])) {// todo
+      if (mounted) alert(context, "Something went wrong while adding tag to database.");
+      return;
+    }
+
+    if (mounted) alert(context, "Playlist \"${playlist_name_controller.text}\" Created!");
+    widget.onCancel();
   }
 
   @override
@@ -140,7 +157,7 @@ class EmptyPlaylistMenu extends StatelessWidget {
                       border: OutlineInputBorder(),
                       labelText: "Enter Name Here",
                     ),
-                    controller: list_name_controller,
+                    controller: playlist_name_controller,
                   ),
                 ),
               ],
@@ -153,7 +170,7 @@ class EmptyPlaylistMenu extends StatelessWidget {
                   child: const Text("Create")
                 ),
                 TextButton(
-                  onPressed: onCancel,
+                  onPressed: widget.onCancel,
                   child: const Text("Cancel")
                 ),
               ],

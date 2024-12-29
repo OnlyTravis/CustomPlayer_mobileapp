@@ -21,7 +21,6 @@ class Song {
     query_result["song_id"] as int
   );
 }
-
 class Tag {
   String tag_name;
   int tag_count;
@@ -35,6 +34,19 @@ class Tag {
     query_result["tag_count"] as int,
     query_result["color_id"] as int,
     query_result["tag_id"] as int
+  );
+}
+class Playlist {
+  String playlist_name;
+  List<int> song_id_list;
+  int playlist_id;
+
+  Playlist(this.playlist_name, this.song_id_list, this.playlist_id);
+
+  Playlist.fromMap(Map<String, Object?> query_result): this(
+    query_result["playlist_name"] as String,
+    (query_result["song_id_list"] == null)?[]:jsonDecode(query_result["song_id_list"] as String) as List<int>,
+    query_result["playlist_id"] as int
   );
 }
 
@@ -72,15 +84,15 @@ class DatabaseHandler {
     ''');
     await db.execute('''
       CREATE TABLE IF NOT EXISTS Playlists (
-        name TEXT UNIQUE,
+        playlist_name TEXT UNIQUE,
         song_id_list_json TEXT,
-        id INTEGER PRIMARY KEY AUTOINCREMENT
+        playlist_id INTEGER PRIMARY KEY AUTOINCREMENT
       )
     ''');
   }
 
-  bool detectSqlInjection(String str_input) {
-    return str_input.contains('\'') || str_input.contains('"') || str_input.contains('\\');
+  String preventSqlInjection(String str_input) {
+    return str_input.replaceAll("'", "''");
   }
   String toFileName(String file_path) {
     List<String> tmp = file_path.split("/").last.split(".");
@@ -100,7 +112,7 @@ class DatabaseHandler {
     return Song.fromMap(result.first);
   }
   Future<bool> changeSongName(int song_id, String song_name) async {
-    if (detectSqlInjection(song_name)) return false;
+    song_name = preventSqlInjection(song_name);
 
     await db.rawUpdate('''
       UPDATE Songs
@@ -111,7 +123,7 @@ class DatabaseHandler {
     return true;
   }
   Future<bool> changeAuthor(int song_id, String author) async {
-    if (detectSqlInjection(author)) return false;
+    author = preventSqlInjection(author);
 
     await db.rawUpdate('''
       UPDATE Songs
@@ -121,7 +133,7 @@ class DatabaseHandler {
 
     return true;
   }
-  Future<bool> addTagToSong(int song_id, int tag_id) async {7
+  Future<bool> addTagToSong(int song_id, int tag_id) async {
     try {
       // 1. Fetch Song's tag list & add tag to it
       final result = await db.rawQuery('''
@@ -157,8 +169,7 @@ class DatabaseHandler {
         WHERE song_id = $song_id 
       ''');
       final Song song = Song.fromMap(result.first);
-      bool is_removed = song.tag_id_list.remove(tag_id);
-      if (!is_removed) return false;
+      if (!song.tag_id_list.remove(tag_id)) return false;
 
       // 2. Update Song's record's json text
       await db.rawUpdate('''
@@ -180,7 +191,7 @@ class DatabaseHandler {
   }
 
   Future<bool> createTag(String tag_name, int tag_color_id) async {
-    if (detectSqlInjection(tag_name)) return false;
+    tag_name = preventSqlInjection(tag_name);
 
     await db.rawInsert('''
       INSERT INTO Tags (tag_name, tag_count, tag_color_id)
@@ -201,9 +212,67 @@ class DatabaseHandler {
     }
   }
 
-  Future<bool> createPlaylist(String playlist_name) async {
-    //wip
-    return true;
+  Future<bool> createPlaylist(String playlist_name, List<int> song_id_list) async {
+    playlist_name = preventSqlInjection(playlist_name);  
+    try {
+      await db.rawInsert('''
+        INSERT INTO Playlists (playlist_name, song_id_list_json)
+        VALUES ('$playlist_name', '${jsonEncode(song_id_list)}')
+      ''');
+      return true;
+    } catch (err) {
+      return false;
+    }
+  }
+  Future<bool> deletePlaylist(int playlist_id) async { 
+    try {
+      await db.rawDelete('''
+        DELETE FROM Playlists WHERE playlist_id = $playlist_id
+      ''');
+      return true;
+    } catch (err) {
+      return false;
+    }
+  }
+  Future<bool> addSongToPlaylist(int playlist_id, int song_id) async {
+    try {
+      // 1. Fetch Playlist's record & Update its song_id_list
+      final result = await db.rawQuery('''
+        SELECT * FROM Playlists WHERE playlist_id = $playlist_id
+      ''');
+      final Playlist playlist = Playlist.fromMap(result.first);
+      playlist.song_id_list.add(song_id);
+
+      // 2. Update the Playlist's record
+      await db.rawUpdate('''
+        UPDATE Playlists
+        SET song_id_list = '${jsonEncode(playlist.song_id_list)}'
+        WHERE playlist_id = $playlist_id
+      ''');
+      return true;
+    } catch (err) {
+      return false;
+    }
+  }
+  Future<bool> removeSongFromPlaylist(int playlist_id, int song_id) async {
+    try {
+      // 1. Fetch Playlist's record & Update its song_id_list
+      final result = await db.rawQuery('''
+        SELECT * FROM Playlists WHERE playlist_id = $playlist_id
+      ''');
+      final Playlist playlist = Playlist.fromMap(result.first);
+      if (!playlist.song_id_list.remove(song_id)) return false;
+
+      // 2. Update the Playlist's record
+      await db.rawUpdate('''
+        UPDATE Playlists
+        SET song_id_list = '${jsonEncode(playlist.song_id_list)}'
+        WHERE playlist_id = $playlist_id
+      ''');
+      return true;
+    } catch (err) {
+      return false;
+    }
   }
 
   Future<Song> getSongFromPath(String path) async {
