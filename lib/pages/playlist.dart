@@ -146,38 +146,45 @@ class _EmptyPlaylistMenuState extends State<EmptyPlaylistMenu> {
         padding: EdgeInsets.all(8),
         child: Column(
           children: [
-            Row(
-              children: [
-                Text("Playlist Name : "),
-                SizedBox(
-                  width: 256,
-                  height: 40,
-                  child: TextFormField(
-                    decoration: InputDecoration(
-                      border: OutlineInputBorder(),
-                      labelText: "Enter Name Here",
-                    ),
-                    controller: playlist_name_controller,
-                  ),
-                ),
-              ],
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                TextButton(
-                  onPressed: () => {},
-                  child: const Text("Create")
-                ),
-                TextButton(
-                  onPressed: widget.onCancel,
-                  child: const Text("Cancel")
-                ),
-              ],
-            )
+            playlistNameInput(),
+            createCancelButtonSet()
           ],
         ),
       ),
+    );
+  }
+  
+  Widget playlistNameInput() {
+    return Row(
+      children: [
+        Text("Playlist Name : "),
+        SizedBox(
+          width: 256,
+          height: 40,
+          child: TextFormField(
+            decoration: InputDecoration(
+              border: OutlineInputBorder(),
+              labelText: "Enter Name Here",
+            ),
+            controller: playlist_name_controller,
+          ),
+        ),
+      ],
+    );
+  }
+  Widget createCancelButtonSet() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        TextButton(
+          onPressed: button_onCreatePlaylist,
+          child: const Text("Create")
+        ),
+        TextButton(
+          onPressed: widget.onCancel,
+          child: const Text("Cancel")
+        ),
+      ],
     );
   }
 }
@@ -190,11 +197,12 @@ class FilteredPlaylistMenu extends StatefulWidget {
   State<FilteredPlaylistMenu> createState() => _FilteredPlaylistMenuState();
 }
 class _FilteredPlaylistMenuState extends State<FilteredPlaylistMenu> {
-
-  List<List<Condition>> condition_type = [];
   static const List<String> conditions = ["hasTag", "withoutTag", "hasAuthor", "withoutAuthor"];
   static const List<String> operators = ["And", "Or", "Not"];
   static List<Condition> defaultConditionSet = [Condition(0, -1)];
+
+  List<List<Condition>> condition_type = [];
+  TextEditingController playlist_name_controller = TextEditingController();
 
   void button_addConditionSet() {
     setState(() {
@@ -204,7 +212,52 @@ class _FilteredPlaylistMenuState extends State<FilteredPlaylistMenu> {
 
   @override
   Widget build(BuildContext context) {
-    return Card();
+    return Card(
+      child: Padding(
+        padding: EdgeInsets.all(8),
+        child: Column(
+          children: [
+            playlistNameInput(),
+            addConditionSetButton(),
+            createCancelButtonSet()
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget playlistNameInput() {
+    return Row(
+      children: [
+        Text("Playlist Name : "),
+        SizedBox(
+          width: 256,
+          height: 40,
+          child: TextFormField(
+            decoration: InputDecoration(
+              border: OutlineInputBorder(),
+              labelText: "Enter Name Here",
+            ),
+            controller: playlist_name_controller,
+          ),
+        ),
+      ],
+    );
+  }
+  Widget createCancelButtonSet() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        TextButton(
+          onPressed: () => {},
+          child: const Text("Create")
+        ),
+        TextButton(
+          onPressed: widget.onCancel,
+          child: const Text("Cancel")
+        ),
+      ],
+    );
   }
 
     Widget addConditionSetButton() {
