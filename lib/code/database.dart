@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:sqflite/sqflite.dart';
 
 late DatabaseHandler db;
@@ -5,14 +7,16 @@ late DatabaseHandler db;
 class Song {
   String song_name;
   String song_path;
+  List<int> tag_id_list;
   String? author;
   int song_id;
 
-  Song(this.song_name, this.song_path, this.author, this.song_id);
+  Song(this.song_name, this.song_path, this.tag_id_list, this.author, this.song_id);
 
   Song.fromMap(Map<String, Object?> query_result): this(
     query_result["song_name"] as String,
     query_result["song_path"] as String,
+    (query_result["tag_id_list"] == null)?[]:jsonDecode(query_result["tag_id_list"] as String) as List<int>,
     query_result["author"] as String?,
     query_result["song_id"] as int
   );
@@ -29,7 +33,7 @@ class Tag {
   Tag.fromMap(Map<String, Object?> query_result): this(
     query_result["tag_name"] as String,
     query_result["tag_count"] as int,
-    query_result["tag_color_id"] as int,
+    query_result["color_id"] as int,
     query_result["tag_id"] as int
   );
 }
@@ -52,7 +56,8 @@ class DatabaseHandler {
     await db.execute('''
       CREATE TABLE IF NOT EXISTS Songs (
         song_name TEXT,
-        song_path TEXT,
+        song_path TEXT UNIQUE,
+        tag_list_json TEXT,
         author TEXT,
         song_id INTEGER PRIMARY KEY AUTOINCREMENT
       )
@@ -61,23 +66,17 @@ class DatabaseHandler {
       CREATE TABLE IF NOT EXISTS Tags (
         tag_name TEXT UNIQUE,
         tag_count INTEGER,
-        tag_color_id INTEGER,
-        tag_id INTEGER PRIMARY KEY
+        color_id INTEGER,
+        tag_id INTEGER PRIMARY KEY AUTOINCREMENT
       )
     ''');
     await db.execute('''
-      CREATE TABLE IF NOT EXISTS Linkages (
-        song_id INTEGER,
-        tag_id INTEGER,
-        PRIMARY KEY (song_id, tag_id)
+      CREATE TABLE IF NOT EXISTS Playlists (
+        name TEXT UNIQUE,
+        song_id_list_json TEXT,
+        id INTEGER PRIMARY KEY AUTOINCREMENT
       )
     ''');
-    /*await db.execute('''
-      CREATE TABLE IF NOT EXISTS Playlists (
-        playlist_name TEXT UNIQUE,
-        
-      )
-    ''');*/
   }
 
   bool detectSqlInjection(String str_input) {
@@ -91,7 +90,7 @@ class DatabaseHandler {
 
   Future<Song> addSong(String path) async {
     final String song_name = toFileName(path);
-    await db.execute('''
+    await db.rawInsert('''
       INSERT INTO Songs (song_name, song_path)
       VALUES ('$song_name', '$path');
     ''');
@@ -103,7 +102,7 @@ class DatabaseHandler {
   Future<bool> changeSongName(int song_id, String song_name) async {
     if (detectSqlInjection(song_name)) return false;
 
-    await db.execute('''
+    await db.rawUpdate('''
       UPDATE Songs
       SET song_name = '$song_name'
       WHERE song_id = $song_id 
@@ -114,7 +113,7 @@ class DatabaseHandler {
   Future<bool> changeAuthor(int song_id, String author) async {
     if (detectSqlInjection(author)) return false;
 
-    await db.execute('''
+    await db.rawUpdate('''
       UPDATE Songs
       SET author = '$author'
       WHERE song_id = $song_id 
@@ -122,34 +121,68 @@ class DatabaseHandler {
 
     return true;
   }
-  Future<bool> addTagToSong(int song_id, int tag_id) async {
-    await db.execute('''
-      INSERT INTO Linkages (song_id, tag_id)
-      VALUES ('$song_id', $tag_id);
-    ''');
-    await db.execute('''
-      UPDATE Tags
-      SET tag_count = tag_count+1
-      WHERE tag_id = $tag_id 
-    ''');
-    return true;
+  Future<bool> addTagToSong(int song_id, int tag_id) async {7
+    try {
+      // 1. Fetch Song's tag list & add tag to it
+      final result = await db.rawQuery('''
+        SELECT * FROM Songs
+        WHERE song_id = $song_id 
+      ''');
+      final Song song = Song.fromMap(result.first);
+      song.tag_id_list.add(tag_id);
+
+      // 2. Update Song's record's json text
+      await db.rawUpdate('''
+        UPDATE Songs
+        SET tag_id_list = '${jsonEncode(song.tag_id_list)}'
+        WHERE song_id = $song_id
+      ''');
+
+      // 3. Update Tag's count
+      await db.rawUpdate('''
+        UPDATE Tags
+        SET tag_count = tag_count+1
+        WHERE tag_id = $tag_id 
+      ''');
+      return true; 
+    } catch (err) {
+      return false;
+    }
   }
   Future<bool> removeTagFromSong(int song_id, int tag_id) async {
-    await db.execute('''
-      DELETE FROM Linkages WHERE song_id = $song_id AND tag_id = $tag_id;
-    ''');
-    await db.execute('''
-      UPDATE Tags
-      SET tag_count = tag_count-1
-      WHERE tag_id = $tag_id 
-    ''');
-    return true;
+    try {
+      // 1. Fetch Song's tag list & remove tag from it
+      final result = await db.rawQuery('''
+        SELECT * FROM Songs
+        WHERE song_id = $song_id 
+      ''');
+      final Song song = Song.fromMap(result.first);
+      bool is_removed = song.tag_id_list.remove(tag_id);
+      if (!is_removed) return false;
+
+      // 2. Update Song's record's json text
+      await db.rawUpdate('''
+        UPDATE Songs
+        SET tag_id_list = '${jsonEncode(song.tag_id_list)}'
+        WHERE song_id = $song_id
+      ''');
+
+      // 3. Update Tag's count
+      await db.rawUpdate('''
+        UPDATE Tags
+        SET tag_count = tag_count-1
+        WHERE tag_id = $tag_id 
+      ''');
+      return true;
+    } catch (err) {
+      return false;
+    }
   }
 
   Future<bool> createTag(String tag_name, int tag_color_id) async {
     if (detectSqlInjection(tag_name)) return false;
 
-    await db.execute('''
+    await db.rawInsert('''
       INSERT INTO Tags (tag_name, tag_count, tag_color_id)
       VALUES ('$tag_name', 0, $tag_color_id);
     ''');
@@ -157,11 +190,15 @@ class DatabaseHandler {
     return true;
   }
   Future<bool> deleteTag(int tag_id) async {
-    await db.execute('''
-      DELETE FROM Tags WHERE tag_id = $tag_id;
-    ''');
+    try {
+      await db.rawDelete('''
+        DELETE FROM Tags WHERE tag_id = $tag_id;
+      ''');
 
-    return true;
+      return true;
+    } catch (err) {
+      return false;
+    }
   }
 
   Future<bool> createPlaylist(String playlist_name) async {
@@ -170,6 +207,7 @@ class DatabaseHandler {
   }
 
   Future<Song> getSongFromPath(String path) async {
+    path = path.replaceAll("'", "''");
     try {
       final result = await db.rawQuery('''
         SELECT * FROM Songs where song_path = '$path'
@@ -192,17 +230,21 @@ class DatabaseHandler {
   }
   Future<List<Tag>> getTagsFromSongId(int song_id) async {
     try {
+      // 1. Fetch Song's record
       final result_1 = await db.rawQuery('''
-        SELECT * FROM Linkages where song_id = $song_id
+        SELECT * FROM Songs where song_id = $song_id
       ''');
-      List<Tag> tmp = [];
-      for (final map in result_1) {
+      final Song song = Song.fromMap(result_1.first);
+      
+      // 2. Iterate through tag_id_list and fetch each individual record
+      final List<Tag> tag_list = [];
+      for (final tag_id in song.tag_id_list) {
         final result_2 = await db.rawQuery('''
-          SELECT * FROM Tags where tag_id = ${map["tag_id"]}
+          SELECT * FROM Tags where tag_id = $tag_id
         ''');
-        tmp.add(Tag.fromMap(result_2.first));
+        tag_list.add(Tag.fromMap(result_2.first));
       }
-      return tmp;
+      return tag_list;
     } catch (err) {
       return [];
     }
