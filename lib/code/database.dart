@@ -32,7 +32,7 @@ class Tag {
   Tag.fromMap(Map<String, Object?> query_result): this(
     query_result["tag_name"] as String,
     query_result["tag_count"] as int,
-    query_result["color_id"] as int,
+    query_result["tag_color_id"] as int,
     query_result["tag_id"] as int
   );
 }
@@ -78,7 +78,7 @@ class DatabaseHandler {
       CREATE TABLE IF NOT EXISTS Tags (
         tag_name TEXT UNIQUE,
         tag_count INTEGER,
-        color_id INTEGER,
+        tag_color_id INTEGER,
         tag_id INTEGER PRIMARY KEY AUTOINCREMENT
       )
     ''');
