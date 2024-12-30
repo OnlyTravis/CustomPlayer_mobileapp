@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:song_player/pages/playlist.dart';
 import 'package:sqflite/sqflite.dart';
 
 late DatabaseHandler db;
@@ -50,6 +51,7 @@ class Playlist {
   );
 }
 
+
 Future<void> initDatabase() async {
   db = DatabaseHandler();
   await db.initDatabase();
@@ -85,8 +87,12 @@ class DatabaseHandler {
     await db.execute('''
       CREATE TABLE IF NOT EXISTS Playlists (
         playlist_name TEXT UNIQUE,
+        playlist_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        is_filter_playlist INTEGER NOT NULL,
         song_id_list_json TEXT,
-        playlist_id INTEGER PRIMARY KEY AUTOINCREMENT
+        song_filter_condition_json TEXT,
+        song_filter_outer_operation_json TEXT,
+        song_filter_inner_operation_json TEXT
       )
     ''');
   }
@@ -212,12 +218,24 @@ class DatabaseHandler {
     }
   }
 
-  Future<bool> createPlaylist(String playlist_name, List<int> song_id_list) async {
+  Future<bool> createRegularPlaylist(String playlist_name, List<int> song_id_list) async {
     playlist_name = preventSqlInjection(playlist_name);  
     try {
       await db.rawInsert('''
-        INSERT INTO Playlists (playlist_name, song_id_list_json)
-        VALUES ('$playlist_name', '${jsonEncode(song_id_list)}')
+        INSERT INTO Playlists (playlist_name, is_filter_playlist, song_id_list_json)
+        VALUES ('$playlist_name', 0, '${jsonEncode(song_id_list)}')
+      ''');
+      return true;
+    } catch (err) {
+      return false;
+    }
+  }
+  Future<bool> createFilterPlaylist(String playlist_name, List<List<ConditionInput>> condition_list, List<int> outer_condition_list, List<List<int>> inner_condition_list) async {
+    playlist_name = preventSqlInjection(playlist_name);  
+    try {
+      await db.rawInsert('''
+        INSERT INTO Playlists (playlist_name, is_filter_playlist, song_filter_condition_json, song_filter_outer_operation_json, song_filter_inner_operation_json)
+        VALUES ('$playlist_name', 1, '${jsonEncode(condition_list)}', '${jsonEncode(outer_condition_list)}', '${jsonEncode(inner_condition_list)}')
       ''');
       return true;
     } catch (err) {

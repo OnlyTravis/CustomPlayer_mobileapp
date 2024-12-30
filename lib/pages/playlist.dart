@@ -120,12 +120,12 @@ class _EmptyPlaylistMenuState extends State<EmptyPlaylistMenu> {
 
   Future<void> button_onCreatePlaylist() async {
     if (playlist_name_controller.text.isEmpty) {
-      if (mounted) alert(context, "Please Enter a valid tag name");
+      if (mounted) alert(context, "Please Enter a valid playlist name");
       return;
     }
 
-    if (!await db.createPlaylist(playlist_name_controller.text, [])) {// todo
-      if (mounted) alert(context, "Something went wrong while adding tag to database.");
+    if (!await db.createRegularPlaylist(playlist_name_controller.text, [])) {// todo
+      if (mounted) alert(context, "Something went wrong while adding playlist to database.");
       return;
     }
 
@@ -189,7 +189,6 @@ class ConditionInput {
   int value;
   ConditionInput(this.condition, this.value);
 }
-
 class Condition {
   final String name;
   final ConditionTypes type;
@@ -205,11 +204,10 @@ class FilteredPlaylistMenu extends StatefulWidget {
   State<FilteredPlaylistMenu> createState() => _FilteredPlaylistMenuState();
 }
 class _FilteredPlaylistMenuState extends State<FilteredPlaylistMenu> {
-  static final List<Condition> conditions = [
+  static final List<Condition> conditions = [ // todo : "hasAuthor", "withoutAuthor"
     Condition("hasTag", ConditionTypes.tags), 
     Condition("withoutTag", ConditionTypes.tags)
   ];
-  // todo : "hasAuthor", "withoutAuthor"
   static const List<String> operators = ["And", "Or", "Not"];
   List<Tag> tag_list = [];
 
@@ -231,7 +229,22 @@ class _FilteredPlaylistMenuState extends State<FilteredPlaylistMenu> {
       inner_operator_list[index].add(0);
     });
   }
-  
+  Future<void> button_onCreatePlaylist() async {
+    if (playlist_name_controller.text.isEmpty) {
+      if (mounted) alert(context, "Please Enter a valid playlist name");
+      return;
+    }
+    // todo : check if conditions are empty/valid
+
+    if (!await db.createFilterPlaylist(playlist_name_controller.text, condition_list, outer_operator_list, inner_operator_list)) {// todo
+      if (mounted) alert(context, "Something went wrong while adding playlist to database.");
+      return;
+    }
+
+    if (mounted) alert(context, "Filtered Playlist \"${playlist_name_controller.text}\" Created!");
+    widget.onCancel();
+  }
+
   Future<void> initTagList() async {
     final List<Tag> tmp = await db.getAllTags();
     setState(() {
