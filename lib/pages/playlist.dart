@@ -216,8 +216,10 @@ class _FilteredPlaylistMenuState extends State<FilteredPlaylistMenu> {
       child: Padding(
         padding: EdgeInsets.all(8),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             playlistNameInput(),
+            ...condition_type.asMap().entries.map((entry) => topConditionMenu(entry.key)),
             addConditionSetButton(),
             createCancelButtonSet()
           ],
@@ -259,8 +261,8 @@ class _FilteredPlaylistMenuState extends State<FilteredPlaylistMenu> {
       ],
     );
   }
-
-    Widget addConditionSetButton() {
+  
+  Widget addConditionSetButton() {
     return TextButton(
       onPressed: button_addConditionSet, 
       child: Container(
@@ -283,19 +285,39 @@ class _FilteredPlaylistMenuState extends State<FilteredPlaylistMenu> {
   Widget topConditionMenu(int index) {
     return Card(
       color: Theme.of(context).colorScheme.secondaryContainer,
-      child: Column(
-        children: [
-          ...condition_type[index].asMap().entries.map((entry) => bottomConditionMenu(index, entry.key))
-        ],
-      ),
+      child: Padding(
+        padding: EdgeInsets.all(8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text("Condition Set ${index+1} : "),
+            if (condition_type[index].length == 1) conditionInputRow(index, 0)
+            else ...condition_type[index].asMap().entries.map((entry) => bottomConditionMenu(index, entry.key))
+          ],
+        ),
+      )
     );
   }
   Widget bottomConditionMenu(int index_1, int index_2) {
     return Card(
       color: Theme.of(context).colorScheme.tertiaryContainer,
-      child: Row(
-        children: [
-          DropdownButton(
+      child: Padding(
+        padding: EdgeInsets.all(8),
+        child: conditionInputRow(index_1, index_2)
+      ),
+    );
+  }
+  Widget conditionInputRow(int index_1, int index_2) {
+    return Row(
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(6.0),
+            color: Theme.of(context).colorScheme.inversePrimary,
+          ),
+          padding: EdgeInsets.symmetric(horizontal: 6),
+          child: DropdownButton(
+            value: conditions[condition_type[index_1][index_2].condition],
             items: [
               ...conditions.map((condition) => DropdownMenuItem<String>(
                 value: condition,
@@ -303,9 +325,9 @@ class _FilteredPlaylistMenuState extends State<FilteredPlaylistMenu> {
               ))
             ],
             onChanged: (a) => {},
-          )
-        ],
-      ),
+          ),
+        )
+      ],
     );
   }
   List<Widget> filteredPlaylistCreation() {
