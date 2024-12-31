@@ -195,6 +195,10 @@ class Condition {
   Condition(this.name, this.type);
 }
 enum ConditionTypes {tags}
+final List<Condition> conditions = [ // todo : "hasAuthor", "withoutAuthor"
+  Condition("hasTag", ConditionTypes.tags), 
+  Condition("withoutTag", ConditionTypes.tags)
+];
 
 class FilteredPlaylistMenu extends StatefulWidget {
   final VoidCallback onCancel;
@@ -204,11 +208,7 @@ class FilteredPlaylistMenu extends StatefulWidget {
   State<FilteredPlaylistMenu> createState() => _FilteredPlaylistMenuState();
 }
 class _FilteredPlaylistMenuState extends State<FilteredPlaylistMenu> {
-  static final List<Condition> conditions = [ // todo : "hasAuthor", "withoutAuthor"
-    Condition("hasTag", ConditionTypes.tags), 
-    Condition("withoutTag", ConditionTypes.tags)
-  ];
-  static const List<String> operators = ["And", "Or", "Not"];
+  static const List<String> operators = ["And", "Or"];
   List<Tag> tag_list = [];
 
   List<List<ConditionInput>> condition_list = [];
