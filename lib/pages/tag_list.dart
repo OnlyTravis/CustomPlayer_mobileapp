@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:song_player/code/database.dart';
 import 'package:song_player/code/utils.dart';
+import 'package:song_player/main.dart';
 
 class TagListPage extends StatefulWidget {
   const TagListPage({super.key});
@@ -46,12 +47,9 @@ class _TagListPageState extends State<TagListPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-        title: Text("Tag List"),
-      ),
-      body: Padding(
+    return AppNavigationWrap(
+      page_name: "Tag List",
+      child: Padding(
         padding: EdgeInsets.all(8),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

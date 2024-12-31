@@ -16,9 +16,9 @@ class _SongListPageState extends State<SongListPage> {
   List<Song> song_list = [];
 
   Future<void> updateSongList() async {
-    await audio_handler.updateSongList();
+    final List<Song> tmp = await db.getAllSongs(SortingStyle.nameAsc);
     setState(() {
-      song_list = audio_handler.song_list;
+      song_list = tmp;
     });
   }
 
@@ -30,18 +30,11 @@ class _SongListPageState extends State<SongListPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-        title: const Text("Song List"),
-      ),
-      body: _SongList(),
-    );
-  }
-
-  Widget _SongList() {
-    return ListView(
-      children: [...song_list.asMap().entries.map((entry) => SongCard(entry.value, entry.key))],
+    return AppNavigationWrap(
+      page_name: "Song List", 
+      child: ListView(
+        children: [...song_list.asMap().entries.map((entry) => SongCard(entry.value, entry.key))],
+      )
     );
   }
 
@@ -59,7 +52,7 @@ class _SongListPageState extends State<SongListPage> {
 
   void onSongCardView(Song song) {
     Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (context) => AppNavigationWrap(child: EditSongPage(song: song)))
+      MaterialPageRoute(builder: (context) => EditSongPage(song: song))
     );
   }
 

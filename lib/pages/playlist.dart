@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:song_player/code/database.dart';
 import 'package:song_player/code/utils.dart';
+import 'package:song_player/main.dart';
 import 'package:song_player/widgets/RoundDropdown.dart';
 
 class PlaylistPage extends StatefulWidget {
@@ -10,11 +11,11 @@ class PlaylistPage extends StatefulWidget {
   State<PlaylistPage> createState() => _PlaylistPageState();
 }
 class _PlaylistPageState extends State<PlaylistPage> {
-  bool is_creatingPlaylist = false;
+  List<Playlist> playlist_list = [];
 
   static const List<String> playlistTypes = ["Empty Playlist", "Filter Playlist"]; 
+  bool is_creatingPlaylist = false;
   int create_playlist_type = 0;
-
 
   void button_onCreatePlaylist() {
     setState(() {
@@ -27,20 +28,41 @@ class _PlaylistPageState extends State<PlaylistPage> {
     });
   }
 
+  Future<void> initPlaylistList() async {
+    List<Playlist> tmp = await db.getAllPlaylists(SortingStyle.nameAsc);
+    setState(() {
+      playlist_list = tmp;
+    });
+  }
+
+  @override
+  void initState() {
+    initPlaylistList();
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-        title: const Text("PlayList"),
-      ),
-      body: Container(
+    return AppNavigationWrap(
+      page_name: "Playlists", 
+      child: Container(
         padding: EdgeInsets.all(10),
         child: ListView(
           children: [
+            ...playlist_list.map((playlist) => playlistCard(playlist)),
             if (is_creatingPlaylist) ...createPlaylistMenu() else createPlaylistButton(),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget playlistCard(Playlist playlist) {
+    return Card(
+      child: ListTile(
+        leading: const Icon(Icons.music_note),
+        title: Text(playlist.playlist_name),
+        subtitle: Text("Song Count : ${playlist.song_id_list.length}"),
       ),
     );
   }
@@ -188,6 +210,10 @@ class ConditionInput {
   int condition;
   int value;
   ConditionInput(this.condition, this.value);
+  @override
+  String toString() {
+    return "ConditionInput{condition : $condition, value: $value}";
+  }
 }
 class Condition {
   final String name;
@@ -301,7 +327,7 @@ class _FilteredPlaylistMenuState extends State<FilteredPlaylistMenu> {
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
         TextButton(
-          onPressed: () => {},
+          onPressed: button_onCreatePlaylist,
           child: const Text("Create")
         ),
         TextButton(

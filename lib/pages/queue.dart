@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:song_player/code/audio_handler.dart';
+import 'package:song_player/main.dart';
 
 class QueuePage extends StatefulWidget {
   const QueuePage({super.key});
@@ -10,12 +11,9 @@ class QueuePage extends StatefulWidget {
 class _QueuePageState extends State<QueuePage> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-        title: const Text("Current Queue"),
-      ),
-      body: StreamBuilder(
+    return AppNavigationWrap(
+      page_name: "Current Queue", 
+      child: StreamBuilder(
         stream: audio_handler.queue, 
         builder: (context, snapshot) {
           return ListView(
@@ -36,7 +34,7 @@ class _QueuePageState extends State<QueuePage> {
             ],
           );
         }
-      )
+      ),
     );
   }
 }

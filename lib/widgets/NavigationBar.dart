@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:song_player/main.dart';
 import 'package:song_player/pages/player.dart';
 import 'package:song_player/pages/playlist.dart';
 import 'package:song_player/pages/queue.dart';
@@ -14,7 +13,7 @@ class CommonNavigationBar extends StatefulWidget {
 }
 
 class _CommonNavigationBarState extends State<CommonNavigationBar> {
-  static int selected = 0;
+  static int selected = 1;
 
   @override
   Widget build(BuildContext context) {
@@ -58,10 +57,9 @@ class _CommonNavigationBarState extends State<CommonNavigationBar> {
     setState(() {
       selected = index;
     });
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (context) => AppNavigationWrap(
-        child: routeFromIndex(index),
-      ))
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (context) => routeFromIndex(index)),
+      (_) => false
     );
   }
 

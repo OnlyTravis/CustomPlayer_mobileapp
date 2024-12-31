@@ -2,18 +2,14 @@ import 'dart:async';
 
 import 'package:audio_service/audio_service.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:song_player/code/file_handler.dart';
 import 'package:video_player/video_player.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:rxdart/rxdart.dart';
 import 'dart:io';
 
-import 'package:song_player/code/permission.dart';
 import 'package:song_player/code/database.dart';
 
 late MusicHandler audio_handler;
-
-final List<String> accepted_formats = [".m4a", ".mp3", ".mp4"];
 
 class MediaState {
   final MediaItem? mediaItem;
@@ -46,10 +42,6 @@ class MusicHandler extends BaseAudioHandler with SeekHandler {
   bool need_sync = false;
   bool app_opened = true;
 
-  String music_folder_path = "";
-  List<String> song_path_list = [];
-  List<Song> song_list = [];
-
   Function? _videoPlay;
   Function? _videoPause;
   Function? _videoSeek;
@@ -62,7 +54,6 @@ class MusicHandler extends BaseAudioHandler with SeekHandler {
     audio_player.playbackEventStream.map(_transformEvent).pipe(playbackState);
     _listenForDurationChanges();
     _listenForSongEnd();
-    updateSongList();
 
     video_controller = VideoPlayerController.asset("assets/a.mp4");
   }
@@ -125,39 +116,6 @@ class MusicHandler extends BaseAudioHandler with SeekHandler {
     }
 
     streamController = StreamController<PlaybackState>(onListen: startStream, onPause: stopStream, onResume: startStream, onCancel: stopStream);
-  }
-  
-  Future<void> updateSongList() async {
-    // 1. Get Permission for song files
-    if (!await requestPermission(Permission.manageExternalStorage)) return;
-
-    // 2. Set "Music" folder directory
-    String path = (await getExternalStorageDirectory())?.path ?? "";
-    if (path == "") return;
-
-    List<String> arr = path.split("/"); 
-    String folder_path = "";
-    for (int i = 1; i < arr.length; i++) {
-      if (arr[i] == "Android") break;
-      folder_path += "/${arr[i]}";
-    }
-    folder_path += "/Music";
-    music_folder_path = folder_path;
-
-    // 3. Fetch files inside the folder
-    List<String> file_list = Directory(folder_path)
-      .listSync(recursive: true)
-      .where((obj) => isMediaFile(obj.path))
-      .map((obj) => obj.path.substring(folder_path.length+1))
-      .toList();
-    song_path_list = file_list;
-
-    // 4. Setup song list
-    List<Song> tmp_list = [];
-    for (final file_path in file_list) {
-      tmp_list.add(await db.getSongFromPath(file_path));
-    }
-    song_list = tmp_list;
   }
   
   PlaybackState _transformEvent(PlaybackEvent event) {
@@ -239,19 +197,6 @@ class MusicHandler extends BaseAudioHandler with SeekHandler {
 
   /* UTILS */
 
-  // Checks if a file is of media file format (e.g. mp3, m4a...)
-  bool isMediaFile(String file_path) {
-    for (final format in accepted_formats) {
-      if (file_path.endsWith(format)) return true;
-    }
-    return false;
-  }
-
-  // Converts file path into file name
-  String toFileName(String file_path) {
-    return file_path.split("/").last;
-  }
-
   // Creates a MediaItem from file name
   MediaItem toMediaItem(Song song, Duration duration) {
     return MediaItem(
@@ -269,7 +214,7 @@ class MusicHandler extends BaseAudioHandler with SeekHandler {
   }
 
   Future<void> playFileAudio(Song song) async {
-    await audio_player.setAudioSource(AudioSource.file("$music_folder_path/${song.song_path}"));
+    await audio_player.setAudioSource(AudioSource.file("${file_handler.root_folder_path}/${song.song_path}"));
     await audio_player.seek(Duration.zero);
 
     audio_handler.mediaItem.add(toMediaItem(song, video_controller.value.duration));
@@ -283,7 +228,7 @@ class MusicHandler extends BaseAudioHandler with SeekHandler {
 
     // 2. Init New Video Controller
     video_controller = VideoPlayerController.file(
-      File("$music_folder_path/${song.song_path}"),
+      File("${file_handler.root_folder_path}/${song.song_path}"),
       videoPlayerOptions: VideoPlayerOptions(
         mixWithOthers: true,
         allowBackgroundPlayback: true

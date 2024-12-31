@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:song_player/code/file_handler.dart';
 import 'package:song_player/pages/playlist.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -17,7 +18,7 @@ class Song {
   Song.fromMap(Map<String, Object?> query_result): this(
     query_result["song_name"] as String,
     query_result["song_path"] as String,
-    (query_result["tag_id_list_json"] == null)?[]:jsonDecode(query_result["tag_id_list_json"] as String) as List<int>,
+    (query_result["tag_id_list_json"] == null)?[]:jsonDecode(query_result["tag_id_list_json"] as String).cast<int>(),
     query_result["author"] as String?,
     query_result["song_id"] as int
   );
@@ -48,15 +49,38 @@ class Playlist {
 
   Playlist(this.playlist_name, this.playlist_id, this.song_id_list, this.is_filtered_playlist, this.condition_list, this.outer_operator_list, this.inner_operator_list);
 
-  Playlist.fromMap(Map<String, Object?> query_result): this(
-    query_result["playlist_name"] as String,
-    query_result["playlist_id"] as int,
-    (query_result["song_id_list_json"] == null)?[]:jsonDecode(query_result["song_id_list"] as String) as List<int>,
-    query_result["is_filtered_playlist"] as bool,
-    (query_result["condition_list_json"] == null)?[]:jsonDecode(query_result["condition_list"] as String) as List<List<ConditionInput>>,
-    (query_result["outer_operator_list_json"] == null)?[]:jsonDecode(query_result["outer_operator_list"] as String) as List<int>,
-    (query_result["inner_operator_list_json"] == null)?[]:jsonDecode(query_result["inner_operator_list"] as String) as List<List<int>>
-  );
+  factory Playlist.fromMap(Map<String, Object?> query_result) {
+    List<List<ConditionInput>> tmp_1 = [];
+    if (query_result["condition_list_json"] != null) {
+      final List<dynamic> decoded = jsonDecode(query_result["condition_list_json"] as String);
+      for (int i = 0; i < decoded.length; i++) {
+        tmp_1.add([]);
+        for (int j = 0; j < decoded[i].length; j++) {
+          tmp_1[i].add(ConditionInput(decoded[i][j][0], decoded[i][j][1]));
+        }
+      }
+    }
+    List<List<int>> tmp_2 = [];
+    if (query_result["inner_operator_list_json"] != null) {
+      final List<dynamic> decoded = jsonDecode(query_result["inner_operator_list_json"] as String);
+      for (int i = 0; i < decoded.length; i++) {
+        tmp_2.add([]);
+        for (int j = 0; j < decoded[i].length; j++) {
+          tmp_2[i].add(decoded[i][j]);
+        }
+      }
+    }
+    return Playlist(
+      query_result["playlist_name"] as String,
+      query_result["playlist_id"] as int,
+      (query_result["song_id_list_json"] == null)?[]:jsonDecode(query_result["song_id_list_json"] as String).cast<int>(),
+      query_result["is_filtered_playlist"] == 1,
+      (query_result["condition_list_json"] == null)?[]:tmp_1,
+      (query_result["outer_operator_list_json"] == null)?[]:jsonDecode(query_result["outer_operator_list_json"] as String).cast<int>(),
+      (query_result["inner_operator_list_json"] == null)?[]:tmp_2
+    );
+  }
+    
 }
 
 enum SortingStyle {
@@ -104,19 +128,14 @@ class DatabaseHandler {
         is_filtered_playlist INTEGER NOT NULL,
         song_id_list_json TEXT,
         condition_list_json TEXT,
-        outer_operation_list_json TEXT,
-        inner_operation_list_json TEXT
+        outer_operator_list_json TEXT,
+        inner_operator_list_json TEXT
       )
     ''');
   }
 
   String preventSqlInjection(String str_input) {
     return str_input.replaceAll("'", "''");
-  }
-  String toFileName(String file_path) {
-    List<String> tmp = file_path.split("/").last.split(".");
-    tmp.removeLast();
-    return tmp.join(".");
   }
   Future<bool> refreshFilteredPlaylist(int playlist_id) async {
     // 1. Get playlist record & check if it is a filtered playlist
@@ -125,10 +144,10 @@ class DatabaseHandler {
     ''');
     final Playlist playlist = Playlist.fromMap(result_1.first);
     if (!playlist.is_filtered_playlist) return false;
-
+    print(playlist.condition_list);
     // 2. Match conditions for all songs
     final List<int> song_id_list = []; 
-    final List<Song> song_list = await getAllSong(SortingStyle.nameAsc);
+    final List<Song> song_list = await getAllSongs(SortingStyle.nameAsc);
     for (final song in song_list) {
       bool current = matchConditionSet(song, playlist.condition_list[0], playlist.inner_operator_list[0]);
       for (int i = 1; i < playlist.condition_list.length; i++) {
@@ -146,9 +165,6 @@ class DatabaseHandler {
       SET song_id_list_json = '${jsonEncode(song_id_list)}'
       WHERE playlist_id = $playlist_id
     ''');
-    print("%&*#&%#*&%#*%#&*%&%*#%**%#&%*#%&");
-    print(song_id_list);    
-    print("%&*#&%#*&%#*%#&*%&%*#%**%#&%*#%&");
 
     return true;
   }
@@ -173,15 +189,37 @@ class DatabaseHandler {
         return false;
     }
   }
+  Future<void> updateSongDatabase(List<FileEntity> entity_list) async {
+    // 1. Remove deleted song files
+    List<Song> song_list = await getAllSongs(SortingStyle.none);
+    for (final Song song in song_list) {
+      if (entity_list.indexWhere((entity) => entity.getFullPath() == song.song_path) == -1) {
+        await db.rawDelete('''
+          DELETE FROM Songs WHERE song_id = ${song.song_id}
+        ''');
+      }
+    }
 
-  Future<Song> addSong(String path) async {
-    final String song_name = toFileName(path);
+    // 2. Add New Songs to Database
+    for (final entity in entity_list) {
+      final result_1 = await db.rawQuery('''
+        SELECT * FROM Songs WHERE song_path = '${preventSqlInjection(entity.getFullPath())}'
+      ''');
+      if (result_1.length == 1) continue;
+      if (result_1.isEmpty) {
+        await addSong(entity);
+      }
+    }
+  }
+
+  Future<Song> addSong(FileEntity entity) async {
+    final String song_name = preventSqlInjection(entity.getFileName());
     await db.rawInsert('''
       INSERT INTO Songs (song_name, song_path)
-      VALUES ('$song_name', '$path');
+      VALUES ('$song_name', '${preventSqlInjection(entity.getFullPath())}');
     ''');
     final result = await db.rawQuery('''
-      SELECT * FROM Songs where song_path = '$path'
+      SELECT * FROM Songs where song_path = '${preventSqlInjection(entity.getFullPath())}'
     ''');
     return Song.fromMap(result.first);
   }
@@ -232,6 +270,7 @@ class DatabaseHandler {
       ''');
       return true; 
     } catch (err) {
+      print(err);
       return false;
     }
   }
@@ -300,15 +339,17 @@ class DatabaseHandler {
   }
   Future<bool> createFilterPlaylist(String playlist_name, List<List<ConditionInput>> condition_list, List<int> outer_condition_list, List<List<int>> inner_condition_list) async {
     playlist_name = preventSqlInjection(playlist_name);  
+    List<List<List<int>>> condition_converted = condition_list.map((inner_list) => inner_list.map((condition) => [condition.condition, condition.value]).toList()).toList();
     try {
       int row_id = await db.rawInsert('''
-        INSERT INTO Playlists (playlist_name, is_filtered_playlist, condition_list_json, outer_operation_list_json, inner_operation_list_json)
-        VALUES ('$playlist_name', 1, '${jsonEncode(condition_list)}', '${jsonEncode(outer_condition_list)}', '${jsonEncode(inner_condition_list)}')
+        INSERT INTO Playlists (playlist_name, is_filtered_playlist, condition_list_json, outer_operator_list_json, inner_operator_list_json)
+        VALUES ('$playlist_name', 1, '${jsonEncode(condition_converted)}', '${jsonEncode(outer_condition_list)}', '${jsonEncode(inner_condition_list)}')
       ''');
       await refreshFilteredPlaylist(row_id);
 
       return true;
     } catch (err) {
+      print(err);
       return false;
     }
   }
@@ -363,7 +404,7 @@ class DatabaseHandler {
     }
   }
 
-  Future<List<Song>> getAllSong(SortingStyle sort) async {
+  Future<List<Song>> getAllSongs(SortingStyle sort) async {
     try {
       final result = await db.rawQuery('''
         SELECT * FROM Songs
@@ -378,16 +419,15 @@ class DatabaseHandler {
       return [];
     }
   }
-  Future<Song> getSongFromPath(String path) async {
-    path = preventSqlInjection(path);
+  Future<Song> getSongFromEntity(FileEntity entity) async {
     try {
       final result = await db.rawQuery('''
-        SELECT * FROM Songs where song_path = '$path'
+        SELECT * FROM Songs where song_path = '${preventSqlInjection(entity.getFullPath())}'
       ''');
-      print(result);
-      return Song.fromMap(result.first);
+      if (result.isNotEmpty) return Song.fromMap(result.first);
+      return Song("Error", "Error", [], "Error", -1);
     } catch (err) {
-      return await addSong(path);
+      return Song("Error", "Error", [], "Error", -1);
     }
   }
   
@@ -408,8 +448,6 @@ class DatabaseHandler {
         SELECT * FROM Songs where song_id = $song_id
       ''');
       final Song song = Song.fromMap(result_1.first);
-      print(result_1);
-      print(song);
       
       // 2. Iterate through tag_id_list and fetch each individual record
       final List<Tag> tag_list = [];
@@ -420,6 +458,22 @@ class DatabaseHandler {
         tag_list.add(Tag.fromMap(result_2.first));
       }
       return tag_list;
+    } catch (err) {
+      return [];
+    }
+  }
+
+  Future<List<Playlist>> getAllPlaylists(SortingStyle sort) async {
+    try {
+      final result = await db.rawQuery('''
+        SELECT * FROM Playlists
+      ''');
+      final List<Playlist> playlist_list = result.map((playlist_map) => Playlist.fromMap(playlist_map)).toList();
+      switch (sort) {
+        case SortingStyle.none: return playlist_list;
+        case SortingStyle.nameAsc: return playlist_list..sort((a, b) => a.playlist_name.compareTo(b.playlist_name));
+        case SortingStyle.nameDesc: return playlist_list..sort((a, b) => b.playlist_name.compareTo(a.playlist_name));
+      }
     } catch (err) {
       return [];
     }

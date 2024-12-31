@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:song_player/code/audio_handler.dart';
+import 'package:song_player/main.dart';
 import 'package:video_player/video_player.dart';
 
 String toTimeFormat(Duration duration) {
@@ -31,12 +32,9 @@ class _PlayerPageState extends State<PlayerPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-        title: const Text("Audio Player"),
-      ),
-      body: Center(
+    return AppNavigationWrap(
+      page_name: "Audio Player", 
+      child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [

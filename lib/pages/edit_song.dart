@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:song_player/code/database.dart';
 import 'package:song_player/code/utils.dart';
+import 'package:song_player/main.dart';
 import 'package:song_player/widgets/TagCard.dart';
 
 class EditSongPage extends StatefulWidget {
@@ -52,27 +53,26 @@ class _EditSongPageState extends State<EditSongPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-        title: Text("Viewing Song"),
-      ),
-      body: Padding(
-        padding: EdgeInsets.all(8),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            InfoTable(),
-            SizedBox(height: 10),
-            ...TagList(),
-            if (is_adding_tag) ...[SizedBox(height: 10), addTagMenu()]
-          ],
-        )
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: button_toggleEditMode,
-        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-        child: const Icon(Icons.edit),
+    return AppNavigationWrap(
+      page_name: "Viewing Song",
+      child: Scaffold(
+        body: Padding(
+          padding: EdgeInsets.all(8),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              InfoTable(),
+              SizedBox(height: 10),
+              ...TagList(),
+              if (is_adding_tag) ...[SizedBox(height: 10), addTagMenu()]
+            ],
+          )
+        ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: button_toggleEditMode,
+          backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+          child: const Icon(Icons.edit),
+        ),
       ),
     );
   }
