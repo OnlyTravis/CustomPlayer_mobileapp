@@ -20,6 +20,11 @@ class FileEntity {
     arr.removeLast();
     return arr.join(".");
   }
+
+  @override
+  String toString() {
+    return 'FileEntity{file_name : "$file_name", file_directory = "$file_directory", file_type = "$file_type"}';
+  }
 }
 enum FileType {audio, video, folder}
 
@@ -36,8 +41,6 @@ class FileHandler {
 
   String root_folder_path = "";
   List<FileEntity> file_list = [];
-
-  String current_dir = "";
 
   Future<void> initFileHandler() async {
     // 1. Get Permission for song files
@@ -58,7 +61,6 @@ class FileHandler {
 
     // 3. Fetch files / directories inside the folder
     List<FileSystemEntity> entity_list = Directory(folder_path).listSync(recursive: true);
-    print(entity_list);
     file_list = entity_list.where((entity) => isMediaFile(entity.path))
       .map((file) {
         final String file_name = file.path.split("/").last;
@@ -78,6 +80,17 @@ class FileHandler {
 
     // 4. Update song list in Database & Call update song list in audio_handler
     await db.updateSongDatabase(file_list.where((entity) => (entity.file_type == FileType.audio)||entity.file_type == FileType.video).toList());
+  }
+
+  List<FileEntity> getFilesInDirectory(String path) {
+    return file_list.where((entity) => entity.file_directory == path)
+      .toList()
+      ..sort((entity_1, entity_2) {
+        if ((entity_1.file_type == FileType.folder && entity_2.file_type == FileType.folder) || (entity_1.file_type != FileType.folder && entity_2.file_type != FileType.folder)) {
+          return entity_1.file_name.compareTo(entity_2.file_name);
+        }
+        return (entity_1.file_type == FileType.folder)?-1:1;
+      });
   }
 
   bool isMediaFile(String file_path) {
