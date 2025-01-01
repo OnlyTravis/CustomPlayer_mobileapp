@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:song_player/code/database.dart';
 import 'package:song_player/code/utils.dart';
-import 'package:song_player/main.dart';
+import 'package:song_player/pages/view_playlist.dart';
+import 'package:song_player/widgets/AppNavigationWrap.dart';
 import 'package:song_player/widgets/RoundDropdown.dart';
 
 class PlaylistPage extends StatefulWidget {
@@ -26,6 +27,12 @@ class _PlaylistPageState extends State<PlaylistPage> {
     setState(() {
       is_creatingPlaylist = false;
     });
+    initPlaylistList();
+  }
+  void button_viewPlaylist(Playlist playlist) {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) => ViewPlaylistPage(playlist: playlist))
+    );
   }
 
   Future<void> initPlaylistList() async {
@@ -58,11 +65,22 @@ class _PlaylistPageState extends State<PlaylistPage> {
   }
 
   Widget playlistCard(Playlist playlist) {
-    return Card(
-      child: ListTile(
-        leading: const Icon(Icons.music_note),
-        title: Text(playlist.playlist_name),
-        subtitle: Text("Song Count : ${playlist.song_id_list.length}"),
+    return GestureDetector(
+      onTap: () => button_viewPlaylist(playlist),
+      child: Card(
+        child: ListTile(
+          leading: const Icon(Icons.music_note),
+          title: Text(playlist.playlist_name),
+          subtitle: Text("Song Count : ${playlist.song_id_list.length}"),
+          trailing: Wrap(
+            children: [
+              IconButton(
+                onPressed: () => {}, // WIP 
+                icon: const Icon(Icons.play_arrow)
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -438,7 +456,6 @@ class _FilteredPlaylistMenuState extends State<FilteredPlaylistMenu> {
             });
           }
         );
-      default: return Container();
     }
   }
   Widget outerOperatorInputCard(int index) {

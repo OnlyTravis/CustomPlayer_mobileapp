@@ -251,6 +251,8 @@ class MusicHandler extends BaseAudioHandler with SeekHandler {
   }
 
   Future<void> syncVideoPlayer() async {
+    if (!video_is_inited) return;
+
     // 1. Sync audio source (might be playing the next song)
     if (need_sync) {
       await playFileVideo(song_queue[current_queue_index]);

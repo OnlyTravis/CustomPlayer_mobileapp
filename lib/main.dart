@@ -4,9 +4,6 @@ import 'package:song_player/code/audio_handler.dart';
 import 'package:song_player/code/database.dart';
 import 'package:song_player/code/file_handler.dart';
 import 'package:song_player/pages/player.dart';
-import 'package:song_player/widgets/NavigationBar.dart';
-
-ValueNotifier<int> route_change = ValueNotifier(0);
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -47,52 +44,6 @@ class SongPlayerApp extends StatelessWidget with WidgetsBindingObserver {
         ),
       ),
       home: PlayerPage(),
-    );
-  }
-}
-
-class AppNavigationWrap extends StatefulWidget {
-  final Widget child;
-  final String page_name;
-  final EdgeInsetsGeometry? padding;
-  const AppNavigationWrap({super.key, required this.page_name, required this.child, this.padding});
-
-  @override
-  State<AppNavigationWrap> createState() => _AppNavigationWrapState();
-}
-
-class _AppNavigationWrapState extends State<AppNavigationWrap> {
-  int current_page_index = 0;
-
-  @override
-  void initState() {
-    route_change.addListener(() {
-      setState(() {
-        current_page_index = route_change.value;
-      });
-    });
-    super.initState();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-        title: Text(widget.page_name),
-      ),
-      body: Column(
-        children: [
-          Expanded(
-            child: Container(
-              padding: widget.padding,
-              width: double.infinity,
-              child: widget.child,
-            )
-          ),
-          CommonNavigationBar()
-        ]
-      ),
     );
   }
 }

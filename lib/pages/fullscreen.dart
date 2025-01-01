@@ -12,11 +12,11 @@ class FullScreenVideo extends StatefulWidget {
 class _FullScreenVideoState extends State<FullScreenVideo> {
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: Container(
+    return Scaffold(
+      body: Container(
         color: Colors.black,
         child: Center(
-          child: audio_handler.video_controller.value.isInitialized
+          child: audio_handler.is_playing_video
             ? AspectRatio(
                 aspectRatio: audio_handler.video_controller.value.aspectRatio,
                 child: VideoPlayer(audio_handler.video_controller),
@@ -24,11 +24,11 @@ class _FullScreenVideoState extends State<FullScreenVideo> {
             : AspectRatio(
                 aspectRatio: 4/3,
                 child: Container(
-                  color: Colors.blue,
-                  child: Center(
-                    child: const Icon(
+                  color: const Color.fromARGB(255, 86, 86, 86),
+                  child: const Center(
+                    child: Icon(
                       Icons.music_note,
-                      size: 2.0,
+                      size: 128,
                     ),
                   ),
                 ),

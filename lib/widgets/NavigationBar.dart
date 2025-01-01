@@ -5,6 +5,8 @@ import 'package:song_player/pages/queue.dart';
 import 'package:song_player/pages/song_list.dart';
 import 'package:song_player/pages/tag_list.dart';
 
+ValueNotifier<int> route_change = ValueNotifier(0);
+
 class CommonNavigationBar extends StatefulWidget {
   const CommonNavigationBar({super.key});
 
@@ -14,6 +16,16 @@ class CommonNavigationBar extends StatefulWidget {
 
 class _CommonNavigationBarState extends State<CommonNavigationBar> {
   static int selected = 1;
+
+  @override
+  void initState() {
+    route_change.addListener(() {
+      setState(() {
+        selected = route_change.value;
+      });
+    });
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -58,7 +70,11 @@ class _CommonNavigationBarState extends State<CommonNavigationBar> {
       selected = index;
     });
     Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (context) => routeFromIndex(index)),
+      PageRouteBuilder(
+        pageBuilder: (context, animation1, animation2) => routeFromIndex(index),
+        transitionDuration: Duration.zero,
+        reverseTransitionDuration: Duration.zero,
+      ),
       (_) => false
     );
   }

@@ -147,7 +147,7 @@ class DatabaseHandler {
     ''');
     final Playlist playlist = Playlist.fromMap(result_1.first);
     if (!playlist.is_filtered_playlist) return false;
-    print(playlist.condition_list);
+
     // 2. Match conditions for all songs
     final List<int> song_id_list = []; 
     final List<Song> song_list = await getAllSongs(SortingStyle.nameAsc);
@@ -212,6 +212,18 @@ class DatabaseHandler {
       if (result_1.isEmpty) {
         await addSong(entity);
       }
+    }
+  }
+
+  void sortSongList(List<Song> song_list, SortingStyle sort) {
+    switch (sort) {
+      case SortingStyle.none: return;
+      case SortingStyle.nameAsc:
+        song_list.sort((a, b) => a.song_name.compareTo(b.song_name));
+        return;
+      case SortingStyle.nameDesc:
+        song_list.sort((a, b) => b.song_name.compareTo(a.song_name));
+        return;
     }
   }
 
@@ -422,6 +434,17 @@ class DatabaseHandler {
       return [];
     }
   }
+  Future<List<Song>> getAllSongsFromPlaylist(Playlist playlist, SortingStyle sort) async {
+    List<Song> return_arr = [];
+    for (final int song_id in playlist.song_id_list) {
+      final result = await db.rawQuery('''
+        Select * FROM Songs WHERE song_id = $song_id
+      ''');
+      return_arr.add(Song.fromMap(result.first));
+    }
+    sortSongList(return_arr, sort);
+    return return_arr;
+  }
   Future<Song> getSongFromEntity(FileEntity entity) async {
     //try {
       final result = await db.rawQuery('''
@@ -434,7 +457,7 @@ class DatabaseHandler {
       return Song("Error", "Error", [], "Error", false, -1);
     }*/
   }
-  
+
   Future<List<Tag>> getAllTags() async {
     try {
       final result = await db.rawQuery('''
@@ -481,5 +504,11 @@ class DatabaseHandler {
     } catch (err) {
       return [];
     }
+  }
+  Future<Playlist> getPlaylistFromId(int playlist_id) async {
+    final result = await db.rawQuery('''
+      SELECT * FROM Playlists WHERE playlist_id = $playlist_id
+    ''');
+    return Playlist.fromMap(result.first);
   }
 }

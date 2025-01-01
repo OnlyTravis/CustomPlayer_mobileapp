@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:song_player/code/database.dart';
 import 'package:song_player/code/utils.dart';
-import 'package:song_player/main.dart';
+import 'package:song_player/widgets/AppNavigationWrap.dart';
 
 class TagListPage extends StatefulWidget {
   const TagListPage({super.key});

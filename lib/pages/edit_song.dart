@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:song_player/code/database.dart';
 import 'package:song_player/code/utils.dart';
-import 'package:song_player/main.dart';
+import 'package:song_player/widgets/AppNavigationWrap.dart';
 import 'package:song_player/widgets/TagCard.dart';
 
 class EditSongPage extends StatefulWidget {
@@ -50,6 +50,11 @@ class _EditSongPageState extends State<EditSongPage> {
     await initTagList();
     if (mounted) alert(context, "Tag \"${tag.tag_name}\" Added to Song!");
   }
+  Future<void> button_onRemoveTag(Tag tag) async {
+    await db.removeTagFromSong(widget.song.song_id, tag.tag_id);
+    await initTagList();
+    if (mounted) alert(context, "Tag \"${tag.tag_name}\" Removed to Song!");
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -63,7 +68,7 @@ class _EditSongPageState extends State<EditSongPage> {
             children: [
               InfoTable(),
               SizedBox(height: 10),
-              ...TagList(),
+              TagList(),
               if (is_adding_tag) ...[SizedBox(height: 10), addTagMenu()]
             ],
           )
@@ -86,9 +91,10 @@ class _EditSongPageState extends State<EditSongPage> {
         },
         defaultVerticalAlignment: TableCellVerticalAlignment.top,
         children: [
-          InfoRow("Song Name", widget.song.song_name, true),
-          InfoRow("Song Path", widget.song.song_path, false),
+          InfoRow("Name", widget.song.song_name, true),
           InfoRow("Author", widget.song.author.toString(), true),
+          InfoRow("FilePath", widget.song.song_path, false),
+          InfoRow("id", widget.song.song_id.toString(), false),
         ],
       ),
     );
@@ -115,33 +121,33 @@ class _EditSongPageState extends State<EditSongPage> {
     );
   }
 
-  List<Widget> TagList() {
-    return [
-      Card(
-        child: Container(
-          width: double.infinity,
-          padding: EdgeInsets.all(6),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                "Tags : ",
-                textScaler: TextScaler.linear(1.5),
-              ),
-              Wrap(
-                direction: Axis.horizontal,
-                children: [
-                  ...song_tag_list.map((tag) => TagCard(
-                    value: tag,
-                  )),
-                  if (is_editing) addTagButton(),
-                ],
-              )
-            ],
-          ), 
-        ),
-      )
-    ];
+  Widget TagList() {
+    return Card(
+      child: Container(
+        width: double.infinity,
+        padding: EdgeInsets.all(6),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "Tags : ",
+              textScaler: TextScaler.linear(1.5),
+            ),
+            Wrap(
+              direction: Axis.horizontal,
+              children: [
+                ...song_tag_list.map((tag) => TagCard(
+                  value: tag,
+                  removable: is_editing,
+                  onRemove: () => button_onRemoveTag(tag),
+                )),
+                if (is_editing) addTagButton(),
+              ],
+            )
+          ],
+        ), 
+      ),
+    );
   }
   Widget addTagButton() {
     return Card(
@@ -173,7 +179,8 @@ class _EditSongPageState extends State<EditSongPage> {
               children: [
                 ...tag_list.where((tag) => (song_tag_list.indexWhere((val) => val.tag_id == tag.tag_id) == -1)).map((tag) => TagCard(
                   value: tag,
-                  onTap: button_onAddTag,
+                  tapable: true,
+                  onTap: () => button_onAddTag(tag),
                 )),
               ],
             )

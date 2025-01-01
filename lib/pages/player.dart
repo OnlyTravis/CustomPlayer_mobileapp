@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 import 'package:song_player/code/audio_handler.dart';
-import 'package:song_player/main.dart';
 import 'package:song_player/pages/fullscreen.dart';
+import 'package:song_player/widgets/AppNavigationWrap.dart';
 import 'package:video_player/video_player.dart';
 
 String toTimeFormat(Duration duration) {

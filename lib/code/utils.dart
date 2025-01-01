@@ -26,9 +26,10 @@ void confirm(BuildContext context, String title, String text, Function onConfirm
   );
 }
 
-void alert(BuildContext context, String text) {
+void alert(BuildContext context, String text, {int duration = 4}) {
   final snack_bar = SnackBar(
     content: Text(text),
+    duration: Duration(seconds: duration),
     action: SnackBarAction(
       label: "Dismiss", 
       onPressed: ScaffoldMessenger.of(context).hideCurrentSnackBar

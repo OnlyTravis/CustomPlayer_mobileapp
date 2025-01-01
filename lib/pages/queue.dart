@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:song_player/code/audio_handler.dart';
-import 'package:song_player/main.dart';
+import 'package:song_player/widgets/AppNavigationWrap.dart';
 
 class QueuePage extends StatefulWidget {
   const QueuePage({super.key});
