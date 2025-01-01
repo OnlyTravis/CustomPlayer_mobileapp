@@ -49,17 +49,17 @@ class _SongListPageState extends State<SongListPage> {
     }
   }
   void onFileCardView(Song song) {
-    Navigator.of(context).pushReplacement(
+    Navigator.of(context).push(
       MaterialPageRoute(builder: (context) => EditSongPage(song: song))
     );
   }
   void onFolderCardTap(FileEntity folder) {
-    updateFileList("${folder.file_name}/");
+    updateFileList("${folder.file_directory}${folder.file_name}/");
   }
   void onPreviousFolderTap() {
-    final tmp_arr = current_folder.substring(current_folder.length-1).split("/");
+    final List<String> tmp_arr = current_folder.substring(0, current_folder.length-1).split("/");
     tmp_arr.removeLast();
-    updateFileList((tmp_arr.length == 1)?"":"${tmp_arr.join("/")}/");
+    updateFileList((tmp_arr.isEmpty)?"":"${tmp_arr.join("/")}/");
   }
 
   @override
@@ -71,7 +71,7 @@ class _SongListPageState extends State<SongListPage> {
   @override
   Widget build(BuildContext context) {
     return AppNavigationWrap(
-      page_name: "Song List", 
+      page_name: "Song List - /$current_folder", 
       child: ListView(
         children: [
           if (current_folder.isNotEmpty) PreviousFolderCard(),

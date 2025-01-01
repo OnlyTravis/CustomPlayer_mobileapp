@@ -54,7 +54,8 @@ class SongPlayerApp extends StatelessWidget with WidgetsBindingObserver {
 class AppNavigationWrap extends StatefulWidget {
   final Widget child;
   final String page_name;
-  const AppNavigationWrap({super.key, required this.page_name, required this.child});
+  final EdgeInsetsGeometry? padding;
+  const AppNavigationWrap({super.key, required this.page_name, required this.child, this.padding});
 
   @override
   State<AppNavigationWrap> createState() => _AppNavigationWrapState();
@@ -83,7 +84,8 @@ class _AppNavigationWrapState extends State<AppNavigationWrap> {
       body: Column(
         children: [
           Expanded(
-            child: SizedBox(
+            child: Container(
+              padding: widget.padding,
               width: double.infinity,
               child: widget.child,
             )

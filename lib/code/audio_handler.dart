@@ -39,6 +39,8 @@ class MusicHandler extends BaseAudioHandler with SeekHandler {
   late StreamController<PlaybackState> streamController;
   List<Song> song_queue = [];
   int current_queue_index = 0;
+  bool video_is_inited = false;
+  bool is_playing_video = false;
   bool need_sync = false;
   bool app_opened = true;
 
@@ -54,8 +56,6 @@ class MusicHandler extends BaseAudioHandler with SeekHandler {
     audio_player.playbackEventStream.map(_transformEvent).pipe(playbackState);
     _listenForDurationChanges();
     _listenForSongEnd();
-
-    video_controller = VideoPlayerController.asset("assets/a.mp4");
   }
   
   void setVideoFunctions(Function play, Function pause, Function seek, Function stop) {
@@ -208,6 +208,7 @@ class MusicHandler extends BaseAudioHandler with SeekHandler {
 
   // Plays a Media file
   Future<void> playFile(Song song) async {
+    is_playing_video = song.is_video;
     await playFileVideo(song);
     await playFileAudio(song);
     queue.add(queue.value);
@@ -217,14 +218,15 @@ class MusicHandler extends BaseAudioHandler with SeekHandler {
     await audio_player.setAudioSource(AudioSource.file("${file_handler.root_folder_path}/${song.song_path}"));
     await audio_player.seek(Duration.zero);
 
-    audio_handler.mediaItem.add(toMediaItem(song, video_controller.value.duration));
     await audio_player.play();
   }
 
   Future<void> playFileVideo(Song song) async {
     // 1. Remove Current Video Controller
-    await video_controller.pause();
-    await video_controller.dispose();
+    if (video_is_inited) {
+      await video_controller.pause();
+      await video_controller.dispose();
+    }
 
     // 2. Init New Video Controller
     video_controller = VideoPlayerController.file(
@@ -236,6 +238,7 @@ class MusicHandler extends BaseAudioHandler with SeekHandler {
     );
     await video_controller.initialize();
     await video_controller.setVolume(0);
+    video_is_inited = true;
 
     audio_handler.setVideoFunctions(video_controller.play, video_controller.pause, video_controller.seekTo, () {
       video_controller.seekTo(Duration.zero);
@@ -244,6 +247,7 @@ class MusicHandler extends BaseAudioHandler with SeekHandler {
 
     // 3. Play
     await video_controller.play();
+    audio_handler.mediaItem.add(toMediaItem(song, video_controller.value.duration));
   }
 
   Future<void> syncVideoPlayer() async {

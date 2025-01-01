@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:song_player/code/audio_handler.dart';
 import 'package:song_player/main.dart';
+import 'package:song_player/pages/fullscreen.dart';
 import 'package:video_player/video_player.dart';
 
 String toTimeFormat(Duration duration) {
@@ -21,6 +22,13 @@ class PlayerPage extends StatefulWidget {
 }
 
 class _PlayerPageState extends State<PlayerPage> {
+
+  void button_toFullScreen() {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) => FullScreenVideo())
+    );
+  }
+
   @override
   void initState() {
     audio_handler.queue.listen((queue) {
@@ -49,15 +57,42 @@ class _PlayerPageState extends State<PlayerPage> {
   }
 
   Widget _mediaPlayer() {
-    return Container(
-      color: Theme.of(context).colorScheme.surfaceContainerLow,
-      margin: EdgeInsets.all(8),
-      child: audio_handler.video_controller.value.isInitialized
-      ? AspectRatio(
-          aspectRatio: audio_handler.video_controller.value.aspectRatio,
-          child: VideoPlayer(audio_handler.video_controller),
+    return AspectRatio(
+      aspectRatio: 1,
+      child: Container(
+        margin: EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.secondaryContainer,
+          borderRadius: BorderRadius.all(Radius.circular(12))
+        ),
+        child: Stack(
+          children: [
+            Center(
+              child: audio_handler.is_playing_video
+                ? AspectRatio(
+                    aspectRatio: audio_handler.video_controller.value.aspectRatio,
+                    child: VideoPlayer(audio_handler.video_controller),
+                  )
+                : Icon(
+                    Icons.music_note,
+                    color: Theme.of(context).colorScheme.secondaryFixedDim,
+                    size: 128,
+                  ),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                SizedBox(height: double.infinity,),
+                IconButton(
+                  onPressed: button_toFullScreen, 
+                  icon: Icon(Icons.fullscreen)
+                )
+              ],
+            ),
+          ],
         )
-      : Container(),
+      ),
     );
   }
 
