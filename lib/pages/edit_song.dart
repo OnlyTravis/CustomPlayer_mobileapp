@@ -12,6 +12,8 @@ class EditSongPage extends StatefulWidget {
 }
 
 class _EditSongPageState extends State<EditSongPage> {
+  double volume = 1;
+
   bool is_editing = false;
   bool is_adding_tag = false;
   List<Tag> song_tag_list = [];
@@ -20,6 +22,9 @@ class _EditSongPageState extends State<EditSongPage> {
   @override
   void initState() {
     initTagList();
+    setState(() {
+      volume = widget.song.volume;
+    });
     super.initState();
   }
 
@@ -67,6 +72,7 @@ class _EditSongPageState extends State<EditSongPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               InfoTable(),
+              VolumeSlider(),
               SizedBox(height: 10),
               TagList(),
               if (is_adding_tag) ...[SizedBox(height: 10), addTagMenu()]
@@ -77,6 +83,44 @@ class _EditSongPageState extends State<EditSongPage> {
           onPressed: button_toggleEditMode,
           backgroundColor: Theme.of(context).colorScheme.primaryContainer,
           child: const Icon(Icons.edit),
+        ),
+      ),
+    );
+  }
+
+  Widget VolumeSlider() {
+    return Card(
+      child: Container(
+        width: double.infinity,
+        padding: EdgeInsets.all(6),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "Song Volume : ",
+              textScaler: TextScaler.linear(1.5),
+            ),
+            Row(
+              mainAxisSize: MainAxisSize.max,
+              children: [
+                Text(volume.toString()),
+                Slider(
+                  min: 0,
+                  max: 3,
+                  value: volume,
+                  onChanged: (value) => {
+                    setState(() {
+                      volume = value;
+                    })
+                  },
+                  onChangeEnd: (new_value) async {
+                    await db.changeSongVolume(widget.song.song_id, volume);
+                  },
+                ),
+                Text("3"),
+              ],
+            ),
+          ],
         ),
       ),
     );

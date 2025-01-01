@@ -217,7 +217,7 @@ class MusicHandler extends BaseAudioHandler with SeekHandler {
   Future<void> playFileAudio(Song song) async {
     await audio_player.setAudioSource(AudioSource.file("${file_handler.root_folder_path}/${song.song_path}"));
     await audio_player.seek(Duration.zero);
-
+    await audio_player.setVolume(song.volume);
     await audio_player.play();
   }
 

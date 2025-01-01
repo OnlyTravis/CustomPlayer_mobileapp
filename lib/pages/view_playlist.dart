@@ -3,7 +3,6 @@ import 'package:song_player/code/database.dart';
 import 'package:song_player/code/utils.dart';
 import 'package:song_player/pages/playlist.dart';
 import 'package:song_player/widgets/AppNavigationWrap.dart';
-import 'package:song_player/widgets/NavigationBar.dart';
 
 class ViewPlaylistPage extends StatefulWidget {
   final Playlist playlist;

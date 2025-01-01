@@ -11,16 +11,18 @@ class Song {
   String song_path;
   List<int> tag_id_list;
   String? author;
+  double volume;
   bool is_video;
   int song_id;
 
-  Song(this.song_name, this.song_path, this.tag_id_list, this.author, this.is_video, this.song_id);
+  Song(this.song_name, this.song_path, this.tag_id_list, this.author, this.volume, this.is_video, this.song_id);
 
   Song.fromMap(Map<String, Object?> query_result): this(
     query_result["song_name"] as String,
     query_result["song_path"] as String,
     (query_result["tag_id_list_json"] == null)?[]:jsonDecode(query_result["tag_id_list_json"] as String).cast<int>(),
     query_result["author"] as String?,
+    (query_result["volume"] == null)?1:query_result["volume"] as double,
     query_result["is_video"] == 1,
     query_result["song_id"] as int
   );
@@ -112,6 +114,7 @@ class DatabaseHandler {
         song_path TEXT UNIQUE,
         tag_id_list_json TEXT,
         author TEXT,
+        volume REAL,
         is_video INTEGER NOT NULL,
         song_id INTEGER PRIMARY KEY AUTOINCREMENT
       )
@@ -255,6 +258,15 @@ class DatabaseHandler {
     await db.rawUpdate('''
       UPDATE Songs
       SET author = '$author'
+      WHERE song_id = $song_id 
+    ''');
+
+    return true;
+  }
+  Future<bool> changeSongVolume(int song_id, double volume) async {
+    await db.rawUpdate('''
+      UPDATE Songs
+      SET volume = $volume
       WHERE song_id = $song_id 
     ''');
 
@@ -446,16 +458,16 @@ class DatabaseHandler {
     return return_arr;
   }
   Future<Song> getSongFromEntity(FileEntity entity) async {
-    //try {
+    try {
       final result = await db.rawQuery('''
         SELECT * FROM Songs where song_path = '${preventSqlInjection(entity.getFullPath())}'
       ''');
       if (result.isNotEmpty) return Song.fromMap(result.first);
-      return Song("Error", "Error", [], "Error", false, -1);
-    /*} catch (err) {
+      return Song("Error", "Error", [], "Error", 1, false, -1);
+    } catch (err) {
       print(err);
-      return Song("Error", "Error", [], "Error", false, -1);
-    }*/
+      return Song("Error", "Error", [], "Error", 1, false, -1);
+    }
   }
 
   Future<List<Tag>> getAllTags() async {
