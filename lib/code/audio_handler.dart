@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:audio_service/audio_service.dart';
 import 'package:just_audio/just_audio.dart';
@@ -37,8 +38,14 @@ class MusicHandler extends BaseAudioHandler with SeekHandler {
 
   late StreamSubscription<PlaybackState> subscription;
   late StreamController<PlaybackState> streamController;
+
   List<Song> song_queue = [];
   int current_queue_index = 0;
+
+  late Playlist playing_playlist;
+  bool is_playing_playlist = false;
+  bool loop_current_song = false;
+
   bool video_is_inited = false;
   bool is_playing_video = false;
   bool need_sync = false;
@@ -57,6 +64,14 @@ class MusicHandler extends BaseAudioHandler with SeekHandler {
     _listenForDurationChanges();
     _listenForSongEnd();
   }
+
+  MediaItem toMediaItem(Song song, Duration duration) {
+    return MediaItem(
+      id: song.song_path,
+      title: song.song_name,
+      duration: duration,
+    );
+  }
   
   void setVideoFunctions(Function play, Function pause, Function seek, Function stop) {
     _videoPlay = play;
@@ -64,7 +79,6 @@ class MusicHandler extends BaseAudioHandler with SeekHandler {
     _videoSeek = seek;
     _videoStop = stop;
   }
-  
   void initializeStreamController(VideoPlayerController? videoPlayerController) {
     bool _isPlaying() => videoPlayerController?.value.isPlaying ?? false;
 
@@ -117,7 +131,6 @@ class MusicHandler extends BaseAudioHandler with SeekHandler {
 
     streamController = StreamController<PlaybackState>(onListen: startStream, onPause: stopStream, onResume: startStream, onCancel: stopStream);
   }
-  
   PlaybackState _transformEvent(PlaybackEvent event) {
     return PlaybackState(
       controls: [
@@ -151,20 +164,20 @@ class MusicHandler extends BaseAudioHandler with SeekHandler {
       mediaItem.add(mediaItem.value?.copyWith(duration: duration));
     });
   }
-  
   void _listenForSongEnd() {
     audio_player.playerStateStream.listen((playerState) {
       if (playerState.processingState != ProcessingState.completed) return;
+
+      if (loop_current_song) {
+        seek(Duration.zero);
+        return;
+      }
 
       skipToNext();
       if (app_opened) need_sync = true;
     });
   }
 
-
-  /* FUNCTIONS */
-
-  // Adds a song to the end of queue
   void addToQueue(Song song) async {
     song_queue.add(song);
     if (song_queue.length == current_queue_index+1) {
@@ -172,7 +185,6 @@ class MusicHandler extends BaseAudioHandler with SeekHandler {
     }
     queue.add(queue.value);
   }
-  
   void replaceCurrent(Song song) async {
     if (song_queue.isEmpty) {
       song_queue.add(song);
@@ -182,7 +194,6 @@ class MusicHandler extends BaseAudioHandler with SeekHandler {
     await playFile(song);
     queue.add(queue.value);
   }
-
   void setAppOpened(bool is_opened) {
     if (app_opened != is_opened) return;
     app_opened = is_opened;
@@ -194,33 +205,49 @@ class MusicHandler extends BaseAudioHandler with SeekHandler {
     }
   }
 
+  Future<void> playPlaylist(Playlist playlist) async {
+    if (playlist.song_id_list.isEmpty) return;
 
-  /* UTILS */
+    playing_playlist = playlist;
+    song_queue.clear();
+    current_queue_index = 0;
+    is_playing_playlist = true;
 
-  // Creates a MediaItem from file name
-  MediaItem toMediaItem(Song song, Duration duration) {
-    return MediaItem(
-      id: song.song_path,
-      title: song.song_name,
-      duration: duration,
-    );
+    await addRandomFromPlaylist();
+    await playFile(song_queue[0]);
+  }
+  Future<void> stopPlaylist() async {
+    song_queue.clear();
+    current_queue_index = 0;
+    is_playing_playlist = false;
+    await pause();
+  }
+  Future<void> addRandomFromPlaylist() async {
+    int previous = (song_queue.isEmpty)? -1 : song_queue[song_queue.length-1].song_id;
+    while (song_queue.length - current_queue_index < 10) {
+      int next_song = Random().nextInt(playing_playlist.song_id_list.length);
+
+      if (playing_playlist.song_id_list.length != 1) {
+        while (next_song == previous) next_song = Random().nextInt(playing_playlist.song_id_list.length); 
+      }
+
+      song_queue.add(await db.getSongFromId(playing_playlist.song_id_list[next_song]));
+      previous = next_song;
+    } 
   }
 
-  // Plays a Media file
   Future<void> playFile(Song song) async {
     is_playing_video = song.is_video;
     await playFileVideo(song);
     await playFileAudio(song);
     queue.add(queue.value);
   }
-
   Future<void> playFileAudio(Song song) async {
     await audio_player.setAudioSource(AudioSource.file("${file_handler.root_folder_path}/${song.song_path}"));
     await audio_player.seek(Duration.zero);
     await audio_player.setVolume(song.volume);
     await audio_player.play();
   }
-
   Future<void> playFileVideo(Song song) async {
     // 1. Remove Current Video Controller
     if (video_is_inited) {
@@ -248,6 +275,10 @@ class MusicHandler extends BaseAudioHandler with SeekHandler {
     // 3. Play
     await video_controller.play();
     audio_handler.mediaItem.add(toMediaItem(song, video_controller.value.duration));
+  }
+
+  void changePlayMode() {
+    loop_current_song = !loop_current_song;
   }
 
   Future<void> syncVideoPlayer() async {
@@ -285,9 +316,10 @@ class MusicHandler extends BaseAudioHandler with SeekHandler {
   @override Future<bool> skipToNext() async {
     if (song_queue.length < current_queue_index+1) return false;
 
-    current_queue_index++;    
+    current_queue_index++;
     await playFile(song_queue[current_queue_index]);
     queue.add(queue.value);
+    if (is_playing_playlist) await addRandomFromPlaylist();
 
     return true;
   }

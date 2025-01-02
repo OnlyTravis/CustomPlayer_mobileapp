@@ -84,7 +84,11 @@ class Playlist {
       (query_result["inner_operator_list_json"] == null)?[]:tmp_2
     );
   }
-    
+  
+  @override
+  String toString() {
+    return 'Playlist{playlist_name:"$playlist_name", playlist_id:"$playlist_id", song_id_list:"$song_id_list"}';
+  }
 }
 
 enum SortingStyle {
@@ -468,6 +472,12 @@ class DatabaseHandler {
       print(err);
       return Song("Error", "Error", [], "Error", 1, false, -1);
     }
+  }
+  Future<Song> getSongFromId(int song_id) async {
+    final result = await db.rawQuery('''
+      SELECT * FROM Songs WHERE song_id = $song_id
+    ''');
+    return Song.fromMap(result.first);
   }
 
   Future<List<Tag>> getAllTags() async {

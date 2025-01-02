@@ -94,7 +94,7 @@ class _EditSongPageState extends State<EditSongPage> {
         width: double.infinity,
         padding: EdgeInsets.all(6),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Text(
               "Song Volume : ",

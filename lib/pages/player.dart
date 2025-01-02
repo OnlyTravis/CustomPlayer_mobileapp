@@ -29,6 +29,11 @@ class _PlayerPageState extends State<PlayerPage> {
     );
   }
 
+  void button_changePlayMode() {
+    audio_handler.changePlayMode();
+    setState(() {});
+  }
+
   @override
   void initState() {
     audio_handler.queue.listen((queue) {
@@ -95,7 +100,6 @@ class _PlayerPageState extends State<PlayerPage> {
       ),
     );
   }
-
   Widget _mediaNameBar() {
     return StreamBuilder(
       stream: audio_handler.mediaItem, 
@@ -105,7 +109,6 @@ class _PlayerPageState extends State<PlayerPage> {
       }
     );
   }
-
   Widget _mediaProgressBar() {
     return StreamBuilder<MediaState>(
       stream: audio_handler.mediaStateStream,
@@ -141,28 +144,42 @@ class _PlayerPageState extends State<PlayerPage> {
       },
     );
   }
-
   Widget _mediaControlBar() {
     return StreamBuilder<bool>(
       stream: audio_handler.playbackState.map((state) => state.playing), 
       builder: (context, snapshot) {
         bool is_playing = snapshot.data ?? false;
-        return Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            IconButton(
-              onPressed: audio_handler.skipToPrevious, 
-              icon: Icon(Icons.skip_previous),
-            ),
-            IconButton(
-              onPressed: is_playing?audio_handler.pause: audio_handler.play, 
-              icon: Icon(is_playing?Icons.pause : Icons.play_arrow),
-            ),
-            IconButton(
-              onPressed: audio_handler.skipToNext, 
-              icon: Icon(Icons.skip_next),
-            ),
-          ],
+        return Padding(
+          padding: EdgeInsets.symmetric(horizontal: 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IconButton(
+                onPressed: () => {}, 
+                icon: SizedBox(),
+              ),
+              Flexible(child: Container()),
+              IconButton(
+                onPressed: audio_handler.skipToPrevious, 
+                icon: Icon(Icons.skip_previous),
+              ),
+              IconButton(
+                onPressed: is_playing?audio_handler.pause: audio_handler.play, 
+                icon: Icon(is_playing?Icons.pause : Icons.play_arrow),
+              ),
+              IconButton(
+                onPressed: audio_handler.skipToNext, 
+                icon: Icon(Icons.skip_next),
+              ),
+              Flexible(child: Container()),
+              IconButton(
+                onPressed: button_changePlayMode, 
+                icon: Icon(audio_handler.loop_current_song?Icons.loop:Icons.arrow_forward),
+                tooltip: audio_handler.loop_current_song?"Loop Current":"Queue Forward",
+              ),
+            ],
+          ),
         );
       }
     );

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:song_player/code/audio_handler.dart';
 import 'package:song_player/code/database.dart';
 import 'package:song_player/code/utils.dart';
 import 'package:song_player/pages/view_playlist.dart';
@@ -34,6 +35,12 @@ class _PlaylistPageState extends State<PlaylistPage> {
       MaterialPageRoute(builder: (context) => ViewPlaylistPage(playlist: playlist))
     );
   }
+  Future<void> button_onPlayPlaylist(Playlist playlist) async {
+    await audio_handler.playPlaylist(playlist);
+  }
+  Future<void> button_onStopPlaylist() async {
+    await audio_handler.stopPlaylist();
+  }
 
   Future<void> initPlaylistList() async {
     List<Playlist> tmp = await db.getAllPlaylists(SortingStyle.nameAsc);
@@ -65,6 +72,7 @@ class _PlaylistPageState extends State<PlaylistPage> {
   }
 
   Widget playlistCard(Playlist playlist) {
+    bool is_playing = (audio_handler.is_playing_playlist && (audio_handler.playing_playlist.playlist_id == playlist.playlist_id));
     return GestureDetector(
       onTap: () => button_viewPlaylist(playlist),
       child: Card(
@@ -75,8 +83,8 @@ class _PlaylistPageState extends State<PlaylistPage> {
           trailing: Wrap(
             children: [
               IconButton(
-                onPressed: () => {}, // WIP 
-                icon: const Icon(Icons.play_arrow)
+                onPressed: () => is_playing?button_onStopPlaylist():button_onPlayPlaylist(playlist),
+                icon: Icon(is_playing?Icons.pause:Icons.play_arrow)
               ),
             ],
           ),
