@@ -23,7 +23,6 @@ class _SongListPageState extends State<SongListPage> {
   bool is_select_mode = false;
   bool all_selected = false;
 
-
   Future<void> updateFileList(String dir) async {
     final List<FileEntity> tmp_list = file_handler.getFilesInDirectory(dir);
     final List<FileEntity> tmp_folder_list = [];

@@ -36,9 +36,6 @@ class MusicHandler extends BaseAudioHandler with SeekHandler {
   late VideoPlayerController video_controller;
   AudioPlayer audio_player = AudioPlayer();
 
-  late StreamSubscription<PlaybackState> subscription;
-  late StreamController<PlaybackState> streamController;
-
   List<Song> song_queue = [];
   int current_queue_index = 0;
 
@@ -73,63 +70,11 @@ class MusicHandler extends BaseAudioHandler with SeekHandler {
     );
   }
   
-  void setVideoFunctions(Function play, Function pause, Function seek, Function stop) {
+  void _setVideoFunctions(Function play, Function pause, Function seek, Function stop) {
     _videoPlay = play;
     _videoPause = pause;
     _videoSeek = seek;
     _videoStop = stop;
-  }
-  void initializeStreamController(VideoPlayerController? videoPlayerController) {
-    bool _isPlaying() => videoPlayerController?.value.isPlaying ?? false;
-
-    AudioProcessingState _processingState() {
-      if (videoPlayerController == null) return AudioProcessingState.idle;
-      if (videoPlayerController.value.isInitialized) return AudioProcessingState.ready;
-      return AudioProcessingState.idle;
-    }
-
-    Duration _bufferedPosition() {
-      DurationRange? currentBufferedRange = videoPlayerController?.value.buffered.firstWhere((durationRange) {
-        Duration position = videoPlayerController.value.position;
-        bool isCurrentBufferedRange = durationRange.start < position && durationRange.end > position;
-        return isCurrentBufferedRange;
-      });
-      if (currentBufferedRange == null) return Duration.zero;
-      return currentBufferedRange.end;
-    }
-
-    void _addVideoEvent() {
-      streamController.add(PlaybackState(
-        controls: [
-          MediaControl.rewind,
-          if (_isPlaying()) MediaControl.pause else MediaControl.play,
-          MediaControl.stop,
-          MediaControl.fastForward,
-        ],
-        systemActions: const {
-          MediaAction.seek,
-          MediaAction.seekForward,
-          MediaAction.seekBackward,
-        },
-        androidCompactActionIndices: const [0, 1, 3],
-        processingState: _processingState(),
-        playing: _isPlaying(),
-        updatePosition: videoPlayerController?.value.position ?? Duration.zero,
-        bufferedPosition: _bufferedPosition(),
-        speed: videoPlayerController?.value.playbackSpeed ?? 1.0,
-      ));
-    }
-
-    void startStream() {
-      videoPlayerController?.addListener(_addVideoEvent);
-    }
-
-    void stopStream() {
-      videoPlayerController?.removeListener(_addVideoEvent);
-      streamController.close();
-    }
-
-    streamController = StreamController<PlaybackState>(onListen: startStream, onPause: stopStream, onResume: startStream, onCancel: stopStream);
   }
   PlaybackState _transformEvent(PlaybackEvent event) {
     return PlaybackState(
@@ -205,6 +150,53 @@ class MusicHandler extends BaseAudioHandler with SeekHandler {
     }
   }
 
+  void moveQueueItem(int index, int new_index) {
+    // 1. Check if request is valid
+    if (index < 0 || index >= song_queue.length || new_index < 0 || index == new_index) return;
+    if (new_index >= song_queue.length) new_index = song_queue.length-1;
+
+    // 2. Update song_queue values
+    Song tmp = song_queue[index];
+    if (new_index > index) {
+      for (int i = index; i < new_index; i++) {
+        song_queue[index] = song_queue[index+1];
+      }
+    } else {
+      for (int i = index; i > new_index; i--) {
+        song_queue[index] = song_queue[index-1];
+      }
+    }
+    song_queue[new_index] = tmp;
+
+    // 3. Update current_song_index + broadcast change
+    if (current_queue_index == index) {
+      current_queue_index = new_index;
+    } else {
+      if (index <= current_queue_index && current_queue_index <= new_index) {
+        current_queue_index--;
+      } else if (index >= current_queue_index && current_queue_index >= new_index) {
+        current_queue_index++;
+      }
+    }
+    queue.add(queue.value);
+  }
+  Future<void> removeQueueItem_(int index) async {
+    if (song_queue.length <= 1) return;
+
+    if (current_queue_index == index) {
+      if (current_queue_index != song_queue.length-1) {
+        await skipToNext();
+        current_queue_index--;
+      } else {
+        await skipToPrevious();
+      }
+    } else if (index < current_queue_index) {
+      current_queue_index--;
+    }
+    song_queue.removeAt(index);
+    queue.add(queue.value);
+  }
+
   Future<void> playPlaylist(Playlist playlist) async {
     if (playlist.song_id_list.isEmpty) return;
 
@@ -267,7 +259,7 @@ class MusicHandler extends BaseAudioHandler with SeekHandler {
     await video_controller.setVolume(0);
     video_is_inited = true;
 
-    audio_handler.setVideoFunctions(video_controller.play, video_controller.pause, video_controller.seekTo, () {
+    audio_handler._setVideoFunctions(video_controller.play, video_controller.pause, video_controller.seekTo, () {
       video_controller.seekTo(Duration.zero);
       video_controller.pause();
     });
