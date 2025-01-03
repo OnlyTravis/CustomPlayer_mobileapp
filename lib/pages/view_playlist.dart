@@ -58,7 +58,7 @@ class _ViewPlaylistPageState extends State<ViewPlaylistPage> {
     return AppNavigationWrap(
       page_name: "Viewing Playlist", 
       padding: EdgeInsets.all(8),
-      child: Column(
+      child: ListView(
         children: [
           InfoTable(),
           SongList(),

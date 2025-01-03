@@ -511,6 +511,12 @@ class DatabaseHandler {
       return [];
     }
   }
+  Future<Tag> getTagFromTagId(int tag_id) async {
+    final result = await db.rawQuery('''
+      SELECT * FROM Tags WHERE tag_id = $tag_id
+    ''');
+    return Tag.fromMap(result.first);
+  }
 
   Future<List<Playlist>> getAllPlaylists(SortingStyle sort) async {
     try {

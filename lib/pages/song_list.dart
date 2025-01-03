@@ -3,6 +3,7 @@ import 'package:song_player/code/audio_handler.dart';
 import 'package:song_player/code/database.dart';
 import 'package:song_player/code/file_handler.dart';
 import 'package:song_player/pages/edit_song.dart';
+import 'package:song_player/pages/mass_edit_song.dart';
 import 'package:song_player/widgets/AppNavigationWrap.dart';
 
 class SongListPage extends StatefulWidget {
@@ -21,6 +22,7 @@ class _SongListPageState extends State<SongListPage> {
   List<int> selected_files = [];
   bool is_select_mode = false;
   bool all_selected = false;
+
 
   Future<void> updateFileList(String dir) async {
     final List<FileEntity> tmp_list = file_handler.getFilesInDirectory(dir);
@@ -53,8 +55,8 @@ class _SongListPageState extends State<SongListPage> {
       checkAllSelected();
     }
   }
-  void deselectFile(int song_id) {
-    selected_files.remove(song_id);
+  void deselectFile(int index) {
+    selected_files.remove(index);
     setState(() {
       if (selected_files.isEmpty) {
         is_select_mode = false;
@@ -66,9 +68,9 @@ class _SongListPageState extends State<SongListPage> {
     return song_list.length == selected_files.length;
   }
 
-  void onFileCardTap(int index) {
+  void button_onFileCardTap(int index) {
     if (is_select_mode) {
-      onFileCardLongPress(index);
+      button_onFileCardLongPress(index);
       return;
     }
 
@@ -82,33 +84,32 @@ class _SongListPageState extends State<SongListPage> {
       });
     }
   }
-  void onFileCardLongPress(int index) {
-    int song_id = song_list[index].song_id;
-    if (selected_files.contains(song_id)) {
-      deselectFile(song_id);
+  void button_onFileCardLongPress(int index) {
+    if (selected_files.contains(index)) {
+      deselectFile(index);
       return;
     }
 
     setState(() {
-      selected_files.add(song_id);
+      selected_files.add(index);
       is_select_mode = true;
       all_selected = checkAllSelected();
     });
   }
-  void onFileCardView(Song song) {
+  void button_onFileCardView(Song song) {
     Navigator.of(context).push(
       MaterialPageRoute(builder: (context) => EditSongPage(song: song))
     );
   }
-  void onFolderCardTap(FileEntity folder) {
+  void button_onFolderCardTap(FileEntity folder) {
     updateFileList("${folder.file_directory}${folder.file_name}/");
   }
-  void onPreviousFolderTap() {
+  void button_onPreviousFolderTap() {
     final List<String> tmp_arr = current_folder.substring(0, current_folder.length-1).split("/");
     tmp_arr.removeLast();
     updateFileList((tmp_arr.isEmpty)?"":"${tmp_arr.join("/")}/");
   }
-  void onSelectAll() {
+  void button_onSelectAll() {
     if (all_selected) {
       setState(() {
         all_selected = false;
@@ -119,8 +120,19 @@ class _SongListPageState extends State<SongListPage> {
 
     setState(() {
       all_selected = true;
-      selected_files = song_list.map((song) => song.song_id).toList();
+      selected_files = List.generate(song_list.length, (int index) => index);
     });
+  }
+
+  Future<void> button_onMassEditSong() async {
+    final List<Song> selected_song_list = [];
+    for (final index in selected_files) {
+      selected_song_list.add(song_list[index]);
+    }
+
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) => MassEditSongPage(edit_song_list: selected_song_list))
+    );
   }
 
   @override
@@ -152,7 +164,7 @@ class _SongListPageState extends State<SongListPage> {
       toolbarHeight: 40,
       leading: Checkbox(
         value: all_selected, 
-        onChanged: (_) => onSelectAll(),
+        onChanged: (_) => button_onSelectAll(),
       ),
       title: Text(
         "Selected : ${selected_files.length}",
@@ -179,23 +191,18 @@ class _SongListPageState extends State<SongListPage> {
       },
       menuChildren: [
         MenuItemButton(
-          child: Text("Add To Playlist"),
-        ),
-        MenuItemButton(
-          child: Text("Add Tags"),
-        ),
-        MenuItemButton(
-          child: Text("Remove Tags"),
+          onPressed: button_onMassEditSong,
+          child: Text("Mass Edit Song"),
         ),
       ]
     );
   }
 
   Widget fileCard(Song song, int index) {
-    bool is_selected = selected_files.contains(song.song_id);
+    bool is_selected = selected_files.contains(index);
     return GestureDetector(
-      onTap: () => onFileCardTap(index),
-      onLongPress: () => onFileCardLongPress(index),
+      onTap: () => button_onFileCardTap(index),
+      onLongPress: () => button_onFileCardLongPress(index),
       child: Card(
         color: is_selected?Theme.of(context).colorScheme.secondaryContainer:null,
         child: Stack(
@@ -223,7 +230,7 @@ class _SongListPageState extends State<SongListPage> {
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     TextButton(
-                      onPressed: () => onFileCardView(song), 
+                      onPressed: () => button_onFileCardView(song), 
                       child: Text("View / Edit Song"),
                     )
                   ],
@@ -234,7 +241,7 @@ class _SongListPageState extends State<SongListPage> {
               alignment: Alignment(1.05, 5),
               child: Checkbox(
                 value: is_selected,
-                onChanged: (_) => onFileCardLongPress(index),
+                onChanged: (_) => button_onFileCardLongPress(index),
               ),
             )
           ],
@@ -244,7 +251,7 @@ class _SongListPageState extends State<SongListPage> {
   }
   Widget folderCard(FileEntity folder) {
     return GestureDetector(
-      onTap: () => onFolderCardTap(folder),
+      onTap: () => button_onFolderCardTap(folder),
       child: Card(
         child: ListTile(
           leading: const Icon(Icons.folder),
@@ -255,7 +262,7 @@ class _SongListPageState extends State<SongListPage> {
   }
   Widget previousFolderCard() {
     return GestureDetector(
-      onTap: onPreviousFolderTap,
+      onTap: button_onPreviousFolderTap,
       child: Card(
         child: const ListTile(
           leading: Icon(Icons.folder),

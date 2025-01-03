@@ -68,8 +68,8 @@ class _EditSongPageState extends State<EditSongPage> {
       child: Scaffold(
         body: Padding(
           padding: EdgeInsets.all(8),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          child: ListView(
+            //crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               InfoTable(),
               VolumeSlider(),
@@ -94,7 +94,7 @@ class _EditSongPageState extends State<EditSongPage> {
         width: double.infinity,
         padding: EdgeInsets.all(6),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               "Song Volume : ",
