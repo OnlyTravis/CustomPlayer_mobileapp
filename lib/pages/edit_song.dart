@@ -12,20 +12,19 @@ class EditSongPage extends StatefulWidget {
 }
 
 class _EditSongPageState extends State<EditSongPage> {
-  double volume = 1;
-
-  bool is_editing = false;
-  bool is_adding_tag = false;
   List<Tag> song_tag_list = [];
   List<Tag> tag_list = [];
 
-  @override
-  void initState() {
-    initTagList();
-    setState(() {
-      volume = widget.song.volume;
-    });
-    super.initState();
+  bool is_editing = false;
+  bool need_update = false;
+  double volume = 1;
+
+  TextEditingController author_controller = TextEditingController();
+  TextEditingController song_name_controller = TextEditingController();
+
+  void initControllers() {
+    author_controller.text = widget.song.author.toString();
+    song_name_controller.text = widget.song.song_name;
   }
 
   Future<void> initTagList() async {
@@ -37,17 +36,56 @@ class _EditSongPageState extends State<EditSongPage> {
     });
   }
 
+  @override
+  void initState() {
+    initControllers();
+    initTagList();
+
+    setState(() {
+      volume = widget.song.volume;
+    });
+    super.initState();
+  }
+
   void button_toggleEditMode() {
     setState(() {
       is_editing = !is_editing;
-      if (!is_editing) {
-        is_adding_tag = false;
-      }
     });
   }
-  void button_onToggleAddTag() {
+  Future<void> button_update() async {
+    // 1. Check if values are valid
+    if (song_name_controller.text.isEmpty) {
+      alert(context, "Please Enter a valid song name!");
+      return;
+    }
+    if (author_controller.text.isEmpty) {
+      alert(context, "Please Enter a valid author name!");
+      return;
+    }
+
+    // 2. Update values
+    if (author_controller.text != widget.song.author) {
+      await db.changeAuthor(widget.song.song_id, author_controller.text);
+      widget.song.author = author_controller.text;
+    }
+    if (song_name_controller.text != widget.song.song_name) {
+      await db.changeSongName(widget.song.song_id, song_name_controller.text);
+      widget.song.song_name = song_name_controller.text;
+    }
+    if (volume != widget.song.volume) {
+      await db.changeSongVolume(widget.song.song_id, volume);
+      widget.song.volume = volume;
+    }
+
     setState(() {
-      is_adding_tag = !is_adding_tag;
+      need_update = false;
+    });
+  }
+  void button_reset() {
+    initControllers();
+    setState(() {
+      need_update = false;
+      volume = widget.song.volume;
     });
   }
   Future<void> button_onAddTag(Tag tag) async {
@@ -69,13 +107,11 @@ class _EditSongPageState extends State<EditSongPage> {
         body: Padding(
           padding: EdgeInsets.all(8),
           child: ListView(
-            //crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               InfoTable(),
-              VolumeSlider(),
               SizedBox(height: 10),
               TagList(),
-              if (is_adding_tag) ...[SizedBox(height: 10), addTagMenu()]
+              if (is_editing) ...[SizedBox(height: 10), addTagMenu()]
             ],
           )
         ),
@@ -88,62 +124,69 @@ class _EditSongPageState extends State<EditSongPage> {
     );
   }
 
-  Widget VolumeSlider() {
-    return Card(
-      child: Container(
-        width: double.infinity,
-        padding: EdgeInsets.all(6),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "Song Volume : ",
-              textScaler: TextScaler.linear(1.5),
-            ),
-            Row(
-              mainAxisSize: MainAxisSize.max,
-              children: [
-                Text(volume.toString()),
-                Slider(
-                  min: 0,
-                  max: 3,
-                  value: volume,
-                  onChanged: (value) => {
-                    setState(() {
-                      volume = value;
-                    })
-                  },
-                  onChangeEnd: (new_value) async {
-                    await db.changeSongVolume(widget.song.song_id, volume);
-                  },
-                ),
-                Text("3"),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget InfoTable() {
     return Card(
-      child: Table(
-        columnWidths: {
-          0: IntrinsicColumnWidth(),
-          1: FlexColumnWidth()
-        },
-        defaultVerticalAlignment: TableCellVerticalAlignment.top,
+      child: Column(
         children: [
-          InfoRow("Name", widget.song.song_name, true),
-          InfoRow("Author", widget.song.author.toString(), true),
-          InfoRow("FilePath", widget.song.song_path, false),
-          InfoRow("id", widget.song.song_id.toString(), false),
+          Table(
+            columnWidths: {
+              0: IntrinsicColumnWidth(),
+              1: FlexColumnWidth()
+            },
+            defaultVerticalAlignment: TableCellVerticalAlignment.top,
+            children: [
+              InfoRow("Name", widget.song.song_name, 
+                editable: true, 
+                controller: song_name_controller
+              ),
+              InfoRow("Author", widget.song.author.toString(), 
+                editable: true,
+                controller: author_controller,
+              ),
+              InfoRow("FilePath", widget.song.song_path),
+              VolumeRow(),
+              InfoRow("id", widget.song.song_id.toString()),
+            ],
+          ),
+          if (need_update) Row(
+            children: [
+              TextButton(
+                onPressed: button_update, 
+                child: Card(
+                  color: Theme.of(context).colorScheme.primaryContainer,
+                  child: const Padding(
+                    padding: EdgeInsets.all(6),
+                    child: Wrap(
+                      children: [
+                        Icon(Icons.update),
+                        Text("Apply Changes")
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              TextButton(
+                onPressed: button_reset, 
+                child: Card(
+                  color: Theme.of(context).colorScheme.primaryContainer,
+                  child: const Padding(
+                    padding: EdgeInsets.all(6),
+                    child: Wrap(
+                      children: [
+                        Icon(Icons.cancel),
+                        Text("Reset Changes")
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          )
         ],
       ),
     );
   }
-  TableRow InfoRow(String title, String value, bool editable) {
+  TableRow InfoRow(String title, String value, {bool editable = false, TextEditingController? controller}) {
     return TableRow(
       children: [
         Container(
@@ -156,11 +199,72 @@ class _EditSongPageState extends State<EditSongPage> {
         ),
         Container(
           padding: EdgeInsets.all(6),
+          child: (is_editing && editable)? 
+            SizedBox(
+              height: 40,
+              child: TextFormField(
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(),
+                ),
+                onChanged: (_) {
+                  setState(() {
+                    need_update = true;
+                  });
+                },
+                controller: controller,
+              ),
+            ) : Text(
+              value, 
+              textScaler: TextScaler.linear(1.5)
+            ),
+        ),
+      ]
+    );
+  }
+  TableRow VolumeRow() {
+    return TableRow(
+      children: [
+        Container(
+          padding: EdgeInsets.all(6),
           child: Text(
-            value, 
-            textScaler: TextScaler.linear(1.5)
+            "Volume: ", 
+            textAlign: TextAlign.right,
+            textScaler: TextScaler.linear(1.5),
           ),
         ),
+        is_editing?
+          Container(
+            padding: EdgeInsets.fromLTRB(6, 0, 0, 0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text(volume.toStringAsFixed(2), textScaler: TextScaler.linear(1.5)),
+                Slider(
+                  min: 0,
+                  max: 3,
+                  value: volume,
+                  onChanged: (value) => {
+                    setState(() {
+                      volume = value;
+                    })
+                  },
+                  onChangeEnd: (_) {
+                    setState(() {
+                      need_update = true;
+                    });
+                  },
+                ),
+                const Text("3.00", textScaler: TextScaler.linear(1.5)),
+              ],
+            ),
+          ) : Container(
+            padding: EdgeInsets.all(6),
+            child: Text(
+              volume.toStringAsFixed(2), 
+              textScaler: TextScaler.linear(1.5)
+            ),
+          ),
       ]
     );
   }
@@ -185,24 +289,10 @@ class _EditSongPageState extends State<EditSongPage> {
                   removable: is_editing,
                   onRemove: () => button_onRemoveTag(tag),
                 )),
-                if (is_editing) addTagButton(),
               ],
             )
           ],
         ), 
-      ),
-    );
-  }
-  Widget addTagButton() {
-    return Card(
-      color: Theme.of(context).colorScheme.secondaryContainer,
-      child: SizedBox(
-        width: 40,
-        height: 40,
-        child: IconButton(
-          onPressed: button_onToggleAddTag, 
-          icon: Icon(Icons.add),
-        ),
       ),
     );
   }

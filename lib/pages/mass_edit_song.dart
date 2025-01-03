@@ -15,9 +15,30 @@ class _MassEditSongPageState extends State<MassEditSongPage> {
   bool common_tags_only = true;
   List<Tag> common_tag_list = [];
   List<Tag> tag_list = [];
-
   List<Tag> all_tag_list = [];
 
+  TextEditingController author_controller = TextEditingController();
+  bool same_author = false;
+  bool author_need_update = false;
+
+  void updateAuthorDisplay() {
+    if (widget.edit_song_list[0].author != null) {
+      bool author_are_same = true;
+      String author = widget.edit_song_list[0].author ?? "";
+      for (final song in widget.edit_song_list) {
+        if (song.author != author) {
+          author_are_same = false;
+          break;
+        }
+      }
+      if (author_are_same) {
+        author_controller.text = author;
+        setState(() {
+          same_author = true;
+        });
+      }
+    }
+  }
   Future<void> updateTagList() async {
     // 1. Get common tags & contains tags
     Set<int> common_tags_set = Set.from(widget.edit_song_list[0].tag_id_list);
@@ -65,9 +86,27 @@ class _MassEditSongPageState extends State<MassEditSongPage> {
     }
     await updateTagList();
   }
+  Future<void> button_batchSetAuthor() async {
+    for (int i = 0; i < widget.edit_song_list.length; i++) {
+      await db.changeAuthor(widget.edit_song_list[i].song_id, author_controller.text);
+      widget.edit_song_list[i].author = author_controller.text;
+    }
+    setState(() {
+      author_need_update = false;
+    });
+    updateAuthorDisplay();
+  }
+  void button_reset() {
+    author_controller.text = "";
+    updateAuthorDisplay();
+    setState(() {
+      author_need_update = false;
+    });
+  }
 
   @override
   void initState() {
+    updateAuthorDisplay();
     updateTagList();
     super.initState();
   }
@@ -80,6 +119,7 @@ class _MassEditSongPageState extends State<MassEditSongPage> {
       child: ListView(
         children: [
           SongListCard(),
+          EditAuthorCard(),
           EditTagCard(),
           AddTagCard(),
         ],
@@ -106,6 +146,72 @@ class _MassEditSongPageState extends State<MassEditSongPage> {
           ],
         ),
       )
+    );
+  }
+  Widget EditAuthorCard() {
+    return Card(
+      child: Padding(
+        padding: EdgeInsets.all(8),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                const Text("Author : ", textScaler: TextScaler.linear(1.5)),
+                SizedBox(
+                  width: 256,
+                  height: 40,
+                  child: TextFormField(
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(),
+                      labelText: same_author?"":"<Authors are different>",
+                    ),
+                    controller: author_controller,
+                    onChanged: (_) {
+                      if (!author_need_update) setState(() {
+                        author_need_update = true;
+                      });
+                    },
+                  ),
+                )
+              ],
+            ),
+            if (author_need_update) Row(
+              children: [
+                TextButton(
+                  onPressed: button_batchSetAuthor, 
+                  child: Card(
+                    color: Theme.of(context).colorScheme.primaryContainer,
+                    child: const Padding(
+                      padding: EdgeInsets.all(6),
+                      child: Wrap(
+                        children: [
+                          Icon(Icons.update),
+                          Text("Apply Changes")
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                TextButton(
+                  onPressed: button_reset, 
+                  child: Card(
+                    color: Theme.of(context).colorScheme.primaryContainer,
+                    child: const Padding(
+                      padding: EdgeInsets.all(6),
+                      child: Wrap(
+                        children: [
+                          Icon(Icons.cancel),
+                          Text("Reset Changes")
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            )
+          ],
+        ),
+      ),
     );
   }
   Widget EditTagCard() {

@@ -21,7 +21,7 @@ class Song {
     query_result["song_name"] as String,
     query_result["song_path"] as String,
     (query_result["tag_id_list_json"] == null)?[]:jsonDecode(query_result["tag_id_list_json"] as String).cast<int>(),
-    query_result["author"] as String?,
+    query_result["author"].toString(),
     (query_result["volume"] == null)?1:query_result["volume"] as double,
     query_result["is_video"] == 1,
     query_result["song_id"] as int

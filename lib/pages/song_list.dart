@@ -123,12 +123,18 @@ class _SongListPageState extends State<SongListPage> {
       selected_files = List.generate(song_list.length, (int index) => index);
     });
   }
-
   Future<void> button_onMassEditSong() async {
     final List<Song> selected_song_list = [];
     for (final index in selected_files) {
       selected_song_list.add(song_list[index]);
     }
+
+    setState(() {
+      selected_files = [];
+      is_select_mode = false;
+      all_selected = false;
+      opened_index = -1;
+    });
 
     Navigator.of(context).push(
       MaterialPageRoute(builder: (context) => MassEditSongPage(edit_song_list: selected_song_list))
