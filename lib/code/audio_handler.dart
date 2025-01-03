@@ -18,7 +18,7 @@ class MediaState {
 
   MediaState(this.mediaItem, this.position);
 }
-
+enum PlayingMode { forward, loopCurrent, loopQueue }
 
 Future<void> initAudioHandler() async {
   audio_handler = await AudioService.init(
@@ -41,7 +41,7 @@ class MusicHandler extends BaseAudioHandler with SeekHandler {
 
   late Playlist playing_playlist;
   bool is_playing_playlist = false;
-  bool loop_current_song = false;
+  PlayingMode playing_mode = PlayingMode.forward;
 
   bool video_is_inited = false;
   bool is_playing_video = false;
@@ -113,9 +113,17 @@ class MusicHandler extends BaseAudioHandler with SeekHandler {
     audio_player.playerStateStream.listen((playerState) {
       if (playerState.processingState != ProcessingState.completed) return;
 
-      if (loop_current_song) {
-        seek(Duration.zero);
-        return;
+      switch (playing_mode) {
+        case PlayingMode.forward: break;
+        case PlayingMode.loopCurrent:
+          seek(Duration.zero);
+          return;
+        case PlayingMode.loopQueue:
+          if (current_queue_index == song_queue.length-1) {
+            skipToIndex(0);
+            return;
+          }
+          break;
       }
 
       skipToNext();
@@ -269,8 +277,8 @@ class MusicHandler extends BaseAudioHandler with SeekHandler {
     audio_handler.mediaItem.add(toMediaItem(song, video_controller.value.duration));
   }
 
-  void changePlayMode() {
-    loop_current_song = !loop_current_song;
+  void changePlayMode(PlayingMode mode) {
+    playing_mode = mode;
   }
 
   Future<void> syncVideoPlayer() async {
@@ -319,6 +327,15 @@ class MusicHandler extends BaseAudioHandler with SeekHandler {
     if (current_queue_index < 1) return false;
 
     current_queue_index--;    
+    playFile(song_queue[current_queue_index]);
+    queue.add(queue.value);
+
+    return true;
+  }
+  Future skipToIndex(int index) async {
+    if (index < 0 || index >= song_queue.length) return false;
+
+    current_queue_index = index;
     playFile(song_queue[current_queue_index]);
     queue.add(queue.value);
 

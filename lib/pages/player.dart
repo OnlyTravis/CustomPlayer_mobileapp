@@ -30,7 +30,11 @@ class _PlayerPageState extends State<PlayerPage> {
   }
 
   void button_changePlayMode() {
-    audio_handler.changePlayMode();
+    switch (audio_handler.playing_mode) {
+      case PlayingMode.forward: audio_handler.changePlayMode(PlayingMode.loopCurrent); break;
+      case PlayingMode.loopCurrent: audio_handler.changePlayMode(PlayingMode.loopQueue); break;
+      case PlayingMode.loopQueue: audio_handler.changePlayMode(PlayingMode.forward); break;
+    }
     setState(() {});
   }
 
@@ -151,37 +155,69 @@ class _PlayerPageState extends State<PlayerPage> {
         bool is_playing = snapshot.data ?? false;
         return Padding(
           padding: EdgeInsets.symmetric(horizontal: 8),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
+          child: Stack(
             children: [
-              IconButton(
-                onPressed: () => {}, 
-                icon: SizedBox(),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  IconButton(
+                    onPressed: audio_handler.skipToPrevious, 
+                    icon: Icon(Icons.skip_previous),
+                  ),
+                  IconButton(
+                    onPressed: is_playing?audio_handler.pause: audio_handler.play, 
+                    icon: Icon(is_playing?Icons.pause : Icons.play_arrow),
+                  ),
+                  IconButton(
+                    onPressed: audio_handler.skipToNext, 
+                    icon: Icon(Icons.skip_next),
+                  ),
+                ],
               ),
-              Flexible(child: Container()),
-              IconButton(
-                onPressed: audio_handler.skipToPrevious, 
-                icon: Icon(Icons.skip_previous),
-              ),
-              IconButton(
-                onPressed: is_playing?audio_handler.pause: audio_handler.play, 
-                icon: Icon(is_playing?Icons.pause : Icons.play_arrow),
-              ),
-              IconButton(
-                onPressed: audio_handler.skipToNext, 
-                icon: Icon(Icons.skip_next),
-              ),
-              Flexible(child: Container()),
-              IconButton(
-                onPressed: button_changePlayMode, 
-                icon: Icon(audio_handler.loop_current_song?Icons.loop:Icons.arrow_forward),
-                tooltip: audio_handler.loop_current_song?"Loop Current":"Queue Forward",
-              ),
+              Align(
+                alignment: Alignment.centerRight,
+                child: _mediaPlayModeButton(),
+              )
             ],
           ),
         );
       }
+    );
+  }
+  Widget _mediaPlayModeButton() {
+    String text;
+    IconData icon;
+
+    switch (audio_handler.playing_mode) {
+      case PlayingMode.forward: 
+        text = "Forward";
+        icon = Icons.forward;
+        break;
+      case PlayingMode.loopCurrent: 
+        text = "Loop Current";
+        icon = Icons.loop;
+        break;
+      case PlayingMode.loopQueue: 
+        text = "Loop Queue";
+        icon = Icons.loop;
+        break;
+    }
+
+    return TextButton(
+      onPressed: button_changePlayMode, 
+      child: Container(
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.primaryContainer,
+          borderRadius: BorderRadius.all(Radius.circular(10))
+        ),
+        padding: EdgeInsets.all(6),
+        child: Wrap(
+          children: [
+            Icon(icon),
+            Text(text)
+          ],
+        ),
+      ),
     );
   }
 }
