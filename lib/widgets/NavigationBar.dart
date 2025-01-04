@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:song_player/pages/player.dart';
 import 'package:song_player/pages/playlist.dart';
 import 'package:song_player/pages/queue.dart';
+import 'package:song_player/pages/settings.dart';
 import 'package:song_player/pages/song_list.dart';
 import 'package:song_player/pages/tag_list.dart';
 
@@ -41,6 +42,7 @@ class _CommonNavigationBarState extends State<CommonNavigationBar> {
           NavigationButton("Queue", Icons.queue_music, 2),
           NavigationButton("Playlist", Icons.playlist_add, 3),
           NavigationButton("Tags", Icons.tag, 4),
+          NavigationButton("Settings", Icons.settings, 5)
         ],
       ),
     );
@@ -86,6 +88,7 @@ class _CommonNavigationBarState extends State<CommonNavigationBar> {
       case 2: return QueuePage();
       case 3: return PlaylistPage();
       case 4: return TagListPage();
+      case 5: return SettingsPage();
     }
     return Container();
   }

@@ -3,20 +3,28 @@ import 'package:flutter/material.dart';
 import 'package:song_player/code/audio_handler.dart';
 import 'package:song_player/code/database.dart';
 import 'package:song_player/code/file_handler.dart';
+import 'package:song_player/code/settings_manager.dart';
 import 'package:song_player/pages/player.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await initSettingsManager();
   await initDatabase();
   await initAudioHandler();
   await initFileHandler();
   runApp(SongPlayerApp());
 }
 
-class SongPlayerApp extends StatelessWidget with WidgetsBindingObserver {
-  SongPlayerApp({super.key}) {
-    WidgetsBinding.instance.addObserver(this);
-  }
+class SongPlayerApp extends StatefulWidget {
+  const SongPlayerApp({super.key});
+
+  @override
+  State<StatefulWidget> createState() => _SongPlayerAppState();
+}
+
+class _SongPlayerAppState extends State<SongPlayerApp> with WidgetsBindingObserver {
+  Color seed_color = const Color.fromARGB(255, 255, 202, 248);
+  bool is_dark_mode = false;
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
@@ -32,6 +40,28 @@ class SongPlayerApp extends StatelessWidget with WidgetsBindingObserver {
     }
   }
 
+  Color colorFromArr(List<int> arr) {
+    return Color.fromARGB(arr[3], arr[0], arr[1], arr[2]);
+  }
+
+  void updateUI() {
+    setState(() {
+      seed_color = colorFromArr(settings_manager.getSetting(Settings.interfaceColor).cast<int>());
+      is_dark_mode = settings_manager.getSetting(Settings.isDarkMode);
+    });
+  }
+
+  @override
+  void initState() {
+    WidgetsBinding.instance.addObserver(this);
+
+    updateUI();
+    settings_manager.notifiers[Settings.interfaceColor.value]?.addListener(updateUI);
+    settings_manager.notifiers[Settings.isDarkMode.value]?.addListener(updateUI);
+
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -39,8 +69,8 @@ class SongPlayerApp extends StatelessWidget with WidgetsBindingObserver {
       theme: ThemeData(
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color.fromARGB(255, 255, 202, 248),
-          brightness: Brightness.light,
+          seedColor: seed_color,
+          brightness: is_dark_mode?Brightness.dark: Brightness.light,
         ),
       ),
       home: PlayerPage(),

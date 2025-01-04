@@ -238,7 +238,7 @@ class _MassEditSongPageState extends State<MassEditSongPage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                Text("Common Tags Only : "),
+                const Text("Common Tags Only : "),
                 Switch(
                   value: common_tags_only, 
                   onChanged: (_) {
