@@ -10,30 +10,50 @@ class FullScreenVideo extends StatefulWidget {
 }
 
 class _FullScreenVideoState extends State<FullScreenVideo> {
+  bool is_rotated = false;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
         color: Colors.black,
-        child: Center(
-          child: audio_handler.is_playing_video
-            ? AspectRatio(
-                aspectRatio: audio_handler.video_controller.value.aspectRatio,
-                child: VideoPlayer(audio_handler.video_controller),
-              )
-            : AspectRatio(
-                aspectRatio: 4/3,
-                child: Container(
-                  color: const Color.fromARGB(255, 86, 86, 86),
-                  child: const Center(
-                    child: Icon(
-                      Icons.music_note,
-                      size: 128,
+        child: Stack(
+          children: [
+            RotatedBox(
+              quarterTurns: is_rotated?1:0,
+              child: Center(
+                child: audio_handler.is_playing_video? 
+                  AspectRatio(
+                      aspectRatio: audio_handler.video_controller.value.aspectRatio,
+                      child: VideoPlayer(audio_handler.video_controller),
+                    )
+                  : AspectRatio(
+                    aspectRatio: 4/3,
+                    child: Container(
+                      color: const Color.fromARGB(255, 86, 86, 86),
+                      child: const Center(
+                        child: Icon(
+                          Icons.music_note,
+                          size: 128,
+                        ),
+                      ),
                     ),
                   ),
-                ),
               ),
-        ),
+            ),
+            Align(
+              alignment: Alignment.bottomRight,
+              child: IconButton(
+                onPressed: () {
+                  setState(() {
+                    is_rotated = !is_rotated;
+                  });
+                }, 
+                icon: Icon(Icons.rotate_90_degrees_ccw)
+              ),
+            )
+          ],
+        )
       ),
     );
   }

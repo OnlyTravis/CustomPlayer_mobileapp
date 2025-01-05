@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
 import 'package:song_player/code/audio_handler.dart';
+import 'package:song_player/code/settings_manager.dart';
 import 'package:song_player/pages/fullscreen.dart';
 import 'package:song_player/widgets/AppNavigationWrap.dart';
+import 'package:song_player/widgets/Card.dart';
 import 'package:video_player/video_player.dart';
 
 String toTimeFormat(Duration duration) {
@@ -51,15 +53,20 @@ class _PlayerPageState extends State<PlayerPage> {
   Widget build(BuildContext context) {
     return AppNavigationWrap(
       page_name: "Audio Player", 
+      page: Pages.playerPage,
       child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            _mediaPlayer(),
-            _mediaNameBar(),
-            _mediaProgressBar(),
-            _mediaControlBar(),
-          ],
+        child: AppCard(
+          padding: EdgeInsets.symmetric(vertical: 8),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _mediaPlayer(),
+              _mediaNameBar(),
+              _mediaProgressBar(),
+              _mediaControlBar(),
+            ],
+          ),
         ),
       ),
     );
@@ -71,7 +78,7 @@ class _PlayerPageState extends State<PlayerPage> {
       child: Container(
         margin: EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.secondaryContainer,
+          color: Theme.of(context).colorScheme.secondaryContainer.withAlpha(settings_manager.getSetting(Settings.containerOpacity)),
           borderRadius: BorderRadius.all(Radius.circular(12))
         ),
         child: Stack(

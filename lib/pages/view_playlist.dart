@@ -3,6 +3,7 @@ import 'package:song_player/code/database.dart';
 import 'package:song_player/code/utils.dart';
 import 'package:song_player/pages/playlist.dart';
 import 'package:song_player/widgets/AppNavigationWrap.dart';
+import 'package:song_player/widgets/Card.dart';
 
 class ViewPlaylistPage extends StatefulWidget {
   final Playlist playlist;
@@ -69,7 +70,7 @@ class _ViewPlaylistPageState extends State<ViewPlaylistPage> {
   }
 
   Widget SongList() {
-    return Card(
+    return AppCard(
       child: Container(
         width: double.infinity,
         padding: EdgeInsets.all(6),
@@ -91,7 +92,7 @@ class _ViewPlaylistPageState extends State<ViewPlaylistPage> {
   }
  
   Widget InfoTable() {
-    return Card(
+    return AppCard(
       child: Table(
         columnWidths: {
           0: IntrinsicColumnWidth(),
@@ -130,7 +131,7 @@ class _ViewPlaylistPageState extends State<ViewPlaylistPage> {
   }
 
   Widget ActionBar() {
-    return Card(
+    return AppCard(
       child: Row(
         children: [
           if (playlist.is_filtered_playlist) TextButton(

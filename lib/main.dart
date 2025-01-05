@@ -12,6 +12,9 @@ Future<void> main() async {
   await initDatabase();
   await initAudioHandler();
   await initFileHandler();
+
+  await db.addDefaultPlaylist();
+
   runApp(SongPlayerApp());
 }
 

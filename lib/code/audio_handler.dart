@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:audio_service/audio_service.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:song_player/code/file_handler.dart';
+import 'package:song_player/code/settings_manager.dart';
 import 'package:video_player/video_player.dart';
 import 'package:rxdart/rxdart.dart';
 import 'dart:io';
@@ -66,6 +67,7 @@ class MusicHandler extends BaseAudioHandler with SeekHandler {
     return MediaItem(
       id: song.song_path,
       title: song.song_name,
+      artist: song.author,
       duration: duration,
     );
   }
@@ -131,14 +133,20 @@ class MusicHandler extends BaseAudioHandler with SeekHandler {
     });
   }
 
-  void addToQueue(Song song) async {
+  Future<void> addToQueue(Song song) async {
     song_queue.add(song);
     if (song_queue.length == current_queue_index+1) {
       await playFile(song);
     }
+
+    if (song_queue.length > settings_manager.getSetting(Settings.maxQueueLength)) {
+      song_queue.removeAt(0);
+      current_queue_index--;
+    }
+
     queue.add(queue.value);
   }
-  void replaceCurrent(Song song) async {
+  Future<void> replaceCurrent(Song song) async {
     if (song_queue.isEmpty) {
       song_queue.add(song);
     } else {
@@ -147,17 +155,6 @@ class MusicHandler extends BaseAudioHandler with SeekHandler {
     await playFile(song);
     queue.add(queue.value);
   }
-  void setAppOpened(bool is_opened) {
-    if (app_opened != is_opened) return;
-    app_opened = is_opened;
-
-    if (is_opened) {
-      syncVideoPlayer();
-    } else {
-      
-    }
-  }
-
   void moveQueueItem(int index, int new_index) {
     // 1. Check if request is valid
     if (index < 0 || index >= song_queue.length || new_index < 0 || index == new_index) return;
@@ -204,6 +201,31 @@ class MusicHandler extends BaseAudioHandler with SeekHandler {
     song_queue.removeAt(index);
     queue.add(queue.value);
   }
+  Future<void> updateSongsInQueue() async {
+    List<int> updateIdList = [];
+    List<Song> updateSongList = [];
+    for (int i = 0; i < song_queue.length; i++) {
+      final int index = updateIdList.indexOf(song_queue[i].song_id);
+      if (index != -1) {
+        song_queue[i] = updateSongList[index];
+        continue;
+      }
+
+      final Song song = await db.getSongFromId(song_queue[i].song_id);
+      updateIdList.add(song_queue[i].song_id);
+      updateSongList.add(song);
+      song_queue[i] = song;
+    }
+
+    mediaItem.add(
+      mediaItem.value?.copyWith(
+        id: song_queue[current_queue_index].song_path,
+        title: song_queue[current_queue_index].song_name,
+        artist: song_queue[current_queue_index].author
+      )
+    );
+    await audio_player.setVolume(song_queue[current_queue_index].volume);
+  }
 
   Future<void> playPlaylist(Playlist playlist) async {
     if (playlist.song_id_list.isEmpty) return;
@@ -232,6 +254,10 @@ class MusicHandler extends BaseAudioHandler with SeekHandler {
       }
 
       song_queue.add(await db.getSongFromId(playing_playlist.song_id_list[next_song]));
+      if (song_queue.length > settings_manager.getSetting(Settings.maxQueueLength)) {
+        song_queue.removeAt(0);
+        current_queue_index--;
+      }
       previous = next_song;
     } 
   }
@@ -292,10 +318,20 @@ class MusicHandler extends BaseAudioHandler with SeekHandler {
     }
 
     // 2. Sync playing state
-    await video_controller.seekTo(audio_player.position);
     if (audio_player.playing) await video_controller.play();
+    await video_controller.seekTo(audio_player.position);
   }
- 
+  void setAppOpened(bool is_opened) {
+    if (app_opened != is_opened) return;
+    app_opened = is_opened;
+
+    if (is_opened) {
+      syncVideoPlayer();
+    } else {
+      
+    }
+  }
+
   @override Future<void> play() async {
     _videoPlay!();
     audio_player.play();

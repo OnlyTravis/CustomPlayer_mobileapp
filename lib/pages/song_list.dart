@@ -5,6 +5,7 @@ import 'package:song_player/code/file_handler.dart';
 import 'package:song_player/pages/edit_song.dart';
 import 'package:song_player/pages/mass_edit_song.dart';
 import 'package:song_player/widgets/AppNavigationWrap.dart';
+import 'package:song_player/widgets/Card.dart';
 
 class SongListPage extends StatefulWidget {
   const SongListPage({super.key});
@@ -150,8 +151,10 @@ class _SongListPageState extends State<SongListPage> {
   Widget build(BuildContext context) {
     return AppNavigationWrap(
       page_name: "Song List - /$current_folder", 
+      page: Pages.songListPage,
       child: Scaffold(
         appBar: is_select_mode?toolBar():null,
+        backgroundColor: Color.fromARGB(0, 0, 0, 0),
         body: ListView(
           children: [
             if (current_folder.isNotEmpty) previousFolderCard(),
@@ -208,7 +211,7 @@ class _SongListPageState extends State<SongListPage> {
     return GestureDetector(
       onTap: () => button_onFileCardTap(index),
       onLongPress: () => button_onFileCardLongPress(index),
-      child: Card(
+      child: AppCard(
         color: is_selected?Theme.of(context).colorScheme.secondaryContainer:null,
         child: Stack(
           children: [
@@ -257,7 +260,7 @@ class _SongListPageState extends State<SongListPage> {
   Widget folderCard(FileEntity folder) {
     return GestureDetector(
       onTap: () => button_onFolderCardTap(folder),
-      child: Card(
+      child: AppCard(
         child: ListTile(
           leading: const Icon(Icons.folder),
           title: Text(folder.file_name)
@@ -268,7 +271,7 @@ class _SongListPageState extends State<SongListPage> {
   Widget previousFolderCard() {
     return GestureDetector(
       onTap: button_onPreviousFolderTap,
-      child: Card(
+      child: AppCard(
         child: const ListTile(
           leading: Icon(Icons.folder),
           title: Text("...")

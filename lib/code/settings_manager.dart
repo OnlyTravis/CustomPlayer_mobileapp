@@ -15,7 +15,16 @@ enum Settings {
   playlistBufferLength(0),
   maxQueueLength(1),
   interfaceColor(2),
-  isDarkMode(3);
+  isDarkMode(3),
+  containerOpacity(4),
+
+  defaultImagePath(5),
+  songListImagePath(6),
+  playerImagePath(7),
+  queueImagePath(8),
+  playlistImagePath(9),
+  tagImagePath(10),
+  settingImagePath(11);
 
   const Settings(this.value);
   final int value;
@@ -31,6 +40,15 @@ class SettingsManager {
     values[Settings.maxQueueLength.value] = 100;
     values[Settings.interfaceColor.value] = [255, 202, 248, 255]; // RGBA
     values[Settings.isDarkMode.value] = false;
+    values[Settings.containerOpacity.value] = 200;
+
+    values[Settings.defaultImagePath.value] = "";
+    values[Settings.songListImagePath.value] = "";
+    values[Settings.playerImagePath.value] = "";
+    values[Settings.queueImagePath.value] = "";
+    values[Settings.playlistImagePath.value] = "";
+    values[Settings.tagImagePath.value] = "";
+    values[Settings.settingImagePath.value] = "";
   }
   void constructNotifiers() {
     for (final entry in values.entries) {

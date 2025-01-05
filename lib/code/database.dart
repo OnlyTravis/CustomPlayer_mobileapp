@@ -26,6 +26,11 @@ class Song {
     query_result["is_video"] == 1,
     query_result["song_id"] as int
   );
+
+  @override
+  String toString() {
+    return "Song{song_name: $song_name, song_path: $song_path, tag_id_list: $tag_id_list, author: $author, volume: $volume, is_video: $is_video, song_id: $song_id}";
+  }
 }
 class Tag {
   String tag_name;
@@ -143,6 +148,15 @@ class DatabaseHandler {
       )
     ''');
   }
+  Future<void> addDefaultPlaylist() async {
+    final result = await db.rawQuery('''
+      SELECT COUNT() FROM Playlists
+    ''');
+
+    if (result.first["COUNT()"] == 0) {
+      await createFilterPlaylist("All Songs", [], [], []);
+    }
+  }
 
   String preventSqlInjection(String str_input) {
     return str_input.replaceAll("'", "''");
@@ -159,6 +173,11 @@ class DatabaseHandler {
     final List<int> song_id_list = []; 
     final List<Song> song_list = await getAllSongs(SortingStyle.nameAsc);
     for (final song in song_list) {
+      if (playlist.condition_list.isEmpty) {
+        song_id_list.add(song.song_id);
+        continue;
+      }
+
       bool current = matchConditionSet(song, playlist.condition_list[0], playlist.inner_operator_list[0]);
       for (int i = 1; i < playlist.condition_list.length; i++) {
         switch (playlist.outer_operator_list[i-1]) {
@@ -348,6 +367,19 @@ class DatabaseHandler {
     try {
       await db.rawDelete('''
         DELETE FROM Tags WHERE tag_id = $tag_id;
+      ''');
+
+      return true;
+    } catch (err) {
+      return false;
+    }
+  }
+  Future<bool> renameTag(String new_tag_name, int tag_id) async {
+    try {
+      await db.rawUpdate('''
+        UPDATE Tags
+        SET tag_name = '$new_tag_name'
+        WHERE tag_id = $tag_id
       ''');
 
       return true;

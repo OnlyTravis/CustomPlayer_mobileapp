@@ -71,12 +71,14 @@ class FileHandler {
         return FileEntity(file_name, file.path.substring(folder_path.length+1, file.path.length-file_name.length), respectiveFileType[i]);
       })
       .toList();
-    file_list.addAll(entity_list.whereType<Directory>()
+    file_list.addAll(entity_list
+      .whereType<Directory>()
       .map((directory) {
         final String folder_name = directory.path.split("/").last;
         return FileEntity(folder_name, directory.path.substring(folder_path.length+1, directory.path.length-folder_name.length), FileType.folder);
       })
     );
+    file_list.removeWhere((entity) => entity.file_name == ".thumbnails");
 
     // 4. Update song list in Database & Call update song list in audio_handler
     await db.updateSongDatabase(file_list.where((entity) => (entity.file_type == FileType.audio)||entity.file_type == FileType.video).toList());

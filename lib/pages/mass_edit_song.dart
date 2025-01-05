@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:song_player/code/audio_handler.dart';
 import 'package:song_player/code/database.dart';
 import 'package:song_player/widgets/AppNavigationWrap.dart';
+import 'package:song_player/widgets/Card.dart';
 import 'package:song_player/widgets/TagCard.dart';
 
 class MassEditSongPage extends StatefulWidget {
@@ -95,6 +97,7 @@ class _MassEditSongPageState extends State<MassEditSongPage> {
       author_need_update = false;
     });
     updateAuthorDisplay();
+    audio_handler.updateSongsInQueue();
   }
   void button_reset() {
     author_controller.text = "";
@@ -128,7 +131,7 @@ class _MassEditSongPageState extends State<MassEditSongPage> {
   }
 
   Widget SongListCard() {
-    return Card(
+    return AppCard(
       child: Padding(
         padding: EdgeInsets.all(8),
         child: Column(
@@ -149,7 +152,7 @@ class _MassEditSongPageState extends State<MassEditSongPage> {
     );
   }
   Widget EditAuthorCard() {
-    return Card(
+    return AppCard(
       child: Padding(
         padding: EdgeInsets.all(8),
         child: Column(
@@ -215,7 +218,7 @@ class _MassEditSongPageState extends State<MassEditSongPage> {
     );
   }
   Widget EditTagCard() {
-    return Card(
+    return AppCard(
       child: Padding(
         padding: EdgeInsets.all(8),
         child: Stack(
@@ -256,7 +259,7 @@ class _MassEditSongPageState extends State<MassEditSongPage> {
   }
   Widget AddTagCard() {
     List<Tag> addable_tags = all_tag_list.where((tag) => (common_tag_list.indexWhere((val) => val.tag_id == tag.tag_id) == -1)).toList();
-    return Card(
+    return AppCard(
       child: Padding(
         padding: EdgeInsets.all(8),
         child: Column(

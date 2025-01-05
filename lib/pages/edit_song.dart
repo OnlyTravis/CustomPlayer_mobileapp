@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:song_player/code/audio_handler.dart';
 import 'package:song_player/code/database.dart';
 import 'package:song_player/code/utils.dart';
 import 'package:song_player/widgets/AppNavigationWrap.dart';
+import 'package:song_player/widgets/Card.dart';
 import 'package:song_player/widgets/TagCard.dart';
 
 class EditSongPage extends StatefulWidget {
@@ -52,7 +54,7 @@ class _EditSongPageState extends State<EditSongPage> {
       is_editing = !is_editing;
     });
   }
-  Future<void> button_update() async {
+  Future<void> button_applyChange() async {
     // 1. Check if values are valid
     if (song_name_controller.text.isEmpty) {
       alert(context, "Please Enter a valid song name!");
@@ -80,8 +82,10 @@ class _EditSongPageState extends State<EditSongPage> {
     setState(() {
       need_update = false;
     });
+
+    audio_handler.updateSongsInQueue();
   }
-  void button_reset() {
+  void button_resetChange() {
     initControllers();
     setState(() {
       need_update = false;
@@ -104,6 +108,7 @@ class _EditSongPageState extends State<EditSongPage> {
     return AppNavigationWrap(
       page_name: "Viewing Song",
       child: Scaffold(
+        backgroundColor: Color.fromARGB(0, 0, 0, 0),
         body: Padding(
           padding: EdgeInsets.all(8),
           child: ListView(
@@ -125,7 +130,7 @@ class _EditSongPageState extends State<EditSongPage> {
   }
 
   Widget InfoTable() {
-    return Card(
+    return AppCard(
       child: Column(
         children: [
           Table(
@@ -151,7 +156,7 @@ class _EditSongPageState extends State<EditSongPage> {
           if (need_update) Row(
             children: [
               TextButton(
-                onPressed: button_update, 
+                onPressed: button_applyChange, 
                 child: Card(
                   color: Theme.of(context).colorScheme.primaryContainer,
                   child: const Padding(
@@ -166,7 +171,7 @@ class _EditSongPageState extends State<EditSongPage> {
                 ),
               ),
               TextButton(
-                onPressed: button_reset, 
+                onPressed: button_resetChange, 
                 child: Card(
                   color: Theme.of(context).colorScheme.primaryContainer,
                   child: const Padding(
@@ -242,7 +247,7 @@ class _EditSongPageState extends State<EditSongPage> {
                 Text(volume.toStringAsFixed(2), textScaler: TextScaler.linear(1.5)),
                 Slider(
                   min: 0,
-                  max: 3,
+                  max: 1,
                   value: volume,
                   onChanged: (value) => {
                     setState(() {
@@ -270,7 +275,7 @@ class _EditSongPageState extends State<EditSongPage> {
   }
 
   Widget TagList() {
-    return Card(
+    return AppCard(
       child: Container(
         width: double.infinity,
         padding: EdgeInsets.all(6),
@@ -297,7 +302,7 @@ class _EditSongPageState extends State<EditSongPage> {
     );
   }
   Widget addTagMenu() {
-    return Card(
+    return AppCard(
       child: Container(
         width: double.infinity,
         padding: EdgeInsets.all(6),

@@ -1,7 +1,13 @@
+import 'dart:io';
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:song_player/code/settings_manager.dart';
 import 'package:song_player/widgets/AppNavigationWrap.dart';
+import 'package:song_player/widgets/Card.dart';
 import 'package:song_player/widgets/RoundDropdown.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -13,14 +19,34 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage> {
   bool changed = false;
   Map<Settings, dynamic> values = {};
+  Map<Settings, String> image_paths = {};
 
   Color picker_color = const Color(0xff443a49);
 
-  void button_applyChange() {
+  Future<void> button_applyChange() async {
     values[Settings.interfaceColor] = [(picker_color.r*255).toInt(), (picker_color.g*255).toInt(), (picker_color.b*255).toInt(), (picker_color.a*255).toInt()];
     for (final entry in values.entries) {
       settings_manager.setSetting(entry.key, entry.value);
     }
+
+    final folder_path = (await getApplicationDocumentsDirectory()).path;
+    for (final entry in image_paths.entries) {
+      final String old_path = settings_manager.getSetting(entry.key);
+      if (old_path != "") {
+        await File(old_path).delete();
+      }
+
+      if (entry.value != "") {
+        final file = File(entry.value);
+
+        final String new_path = "$folder_path/${entry.key.name}_${Random().nextInt(10000000)}.${entry.value.split(".").last}";
+        await file.copy(new_path);
+        settings_manager.setSetting(entry.key, new_path);
+      } else {
+        settings_manager.setSetting(entry.key, "");
+      }
+    }
+
     settings_manager.updateJsonFile();
     setState(() {
       changed = false;
@@ -30,6 +56,23 @@ class _SettingsPageState extends State<SettingsPage> {
     initValues();
     setState(() {
       changed = false;
+    });
+  }
+  Future<void> button_pickImage(Settings setting) async {
+    final image_picker = ImagePicker();
+    final XFile? picked_file = await image_picker.pickImage(source: ImageSource.gallery);
+
+    if (picked_file == null) return;
+
+    image_paths[setting] = picked_file.path;
+    setState(() {
+      changed = true;
+    });
+  }
+  void button_removeImage(Settings setting) {
+    image_paths[setting] = "";
+    setState(() {
+      changed = true;
     });
   }
 
@@ -42,6 +85,7 @@ class _SettingsPageState extends State<SettingsPage> {
     values[Settings.maxQueueLength] = settings_manager.getSetting(Settings.maxQueueLength);
     values[Settings.interfaceColor] = settings_manager.getSetting(Settings.interfaceColor).cast<int>();
     values[Settings.isDarkMode] = settings_manager.getSetting(Settings.isDarkMode);
+    values[Settings.containerOpacity] = settings_manager.getSetting(Settings.containerOpacity);
     setPickerColor(values[Settings.interfaceColor]);
   }
 
@@ -55,20 +99,29 @@ class _SettingsPageState extends State<SettingsPage> {
   Widget build(BuildContext context) {
     return AppNavigationWrap(
       page_name: "Settings", 
+      page: Pages.settingsPage,
       padding: EdgeInsets.all(8),
       child: ListView(
         children: [
           DropDownInput("Playlist Buffer Length", Settings.playlistBufferLength, [5, 10, 20, 30]),
           DropDownInput("Queue Max Length", Settings.maxQueueLength, [50, 100, 200, 300, -1]),
           UIColorPicker(),
+          SliderInput("Container Opacity", Settings.containerOpacity, 0, 255),
           UIBrightnessPicker(),
+          BGImageSelect("Default BG Image", Settings.defaultImagePath),
+          BGImageSelect("Song List Page BG Image", Settings.songListImagePath),
+          BGImageSelect("Player Page BG Image", Settings.playerImagePath),
+          BGImageSelect("Queue Page BG Image", Settings.queueImagePath),
+          BGImageSelect("Playlist Page BG Image", Settings.playlistImagePath),
+          BGImageSelect("Tags Page BG Image", Settings.tagImagePath),
+          BGImageSelect("Settings Page BG Image", Settings.settingImagePath),
           if (changed) ApplyChangeButtons(),
         ],
       ),
     );
   }
   Widget DropDownInput(String label, Settings setting, List<int> options) {
-    return Card(
+    return AppCard(
       child: Padding(
         padding: EdgeInsets.all(8),
         child: Row(
@@ -91,8 +144,40 @@ class _SettingsPageState extends State<SettingsPage> {
       ),
     );
   }
+  Widget SliderInput(String label, Settings setting, int min, int max) {
+    return AppCard(
+      padding: EdgeInsets.all(8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Text("$label : "),
+          Text(values[Settings.containerOpacity].toString()),
+          SizedBox(
+            width: 175,
+            child: Slider(
+              min: min.toDouble(),
+              max: max.toDouble(),
+              value: values[Settings.containerOpacity].toDouble(),
+              onChanged: (value) => {
+                setState(() {
+                  values[Settings.containerOpacity] = value.toInt();
+                })
+              },
+              onChangeEnd: (_) {
+                setState(() {
+                  changed = true;
+                });
+              },
+            ),
+          ),
+          Text(max.toString()),
+        ],
+      ),
+    );
+  }
   Widget UIColorPicker() {
-    return Card(
+    return AppCard(
       child: Padding(
         padding: EdgeInsets.all(8),
         child: Column(
@@ -114,7 +199,7 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
   Widget UIBrightnessPicker() {
-    return Card(
+    return AppCard(
       child: Padding(
         padding: EdgeInsets.all(8),
         child: Row(
@@ -135,7 +220,7 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
   Widget ApplyChangeButtons() {
-    return Card(
+    return AppCard(
       child: Wrap(
         children: [
           TextButton(
@@ -166,6 +251,30 @@ class _SettingsPageState extends State<SettingsPage> {
                   ],
                 ),
               ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+  Widget BGImageSelect(String label, Settings setting) {
+    return AppCard(
+      padding: EdgeInsets.all(8),
+      child: Row(
+        children: [
+          Text("$label : "),
+          AppCard(
+            color: Theme.of(context).colorScheme.secondaryContainer,
+            child: TextButton(
+              onPressed: () => button_pickImage(setting),
+              child: Text("Select Image"),
+            ),
+          ),
+          if (settings_manager.getSetting(setting) != "") AppCard(
+            color: Theme.of(context).colorScheme.secondaryContainer,
+            child: IconButton(
+              onPressed: () => button_removeImage(setting),
+              icon: Icon(Icons.cancel),
             ),
           ),
         ],

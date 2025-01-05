@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:song_player/code/database.dart';
 import 'package:song_player/code/utils.dart';
 import 'package:song_player/widgets/AppNavigationWrap.dart';
+import 'package:song_player/widgets/Card.dart';
 
 class TagListPage extends StatefulWidget {
   const TagListPage({super.key});
@@ -12,6 +13,9 @@ class TagListPage extends StatefulWidget {
 
 class _TagListPageState extends State<TagListPage> {
   List<Tag> tag_list = [];
+
+  TextEditingController rename_controller = TextEditingController();
+  int renaming_tag = -1;
 
   @override
   void initState() {
@@ -26,8 +30,26 @@ class _TagListPageState extends State<TagListPage> {
     });
   }
 
-  Future<void> button_renameTag(Tag tag) async {
+  void button_toggleRenameTag(int index) {
+    rename_controller.text = tag_list[index].tag_name;
+    setState(() {
+      renaming_tag = index;
+    });
+  }
+  Future<void> button_applyRenameTag(Tag tag) async {
+    if (rename_controller.text == "") {
+      alert(context, "Please Enter A Valid Tag Name.");
+      return;
+    }
+    if (!await db.renameTag(rename_controller.text, tag.tag_id)) {
+      if (mounted) alert(context, "A tag with that name already existed.");
+      return;
+    }
 
+    tag_list[renaming_tag].tag_name = rename_controller.text;
+    setState(() {
+      renaming_tag = -1;
+    });
   }
   void button_deleteTag(Tag tag) {
     confirm(
@@ -49,12 +71,13 @@ class _TagListPageState extends State<TagListPage> {
   Widget build(BuildContext context) {
     return AppNavigationWrap(
       page_name: "Tag List",
+      page: Pages.tagsPage,
       child: Padding(
         padding: EdgeInsets.all(8),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ...tag_list.asMap().entries.map((entry) => ShowTagCard(entry.value, entry.key)),
+            ...tag_list.asMap().entries.map((entry) => DisplayTagCard(entry.value, entry.key)),
             CreateTagMenu(onAdd: initTagList)
           ],
         )
@@ -62,15 +85,23 @@ class _TagListPageState extends State<TagListPage> {
     );
   }
 
-  Widget ShowTagCard(Tag value, int index) {
-    return Card(
+  Widget DisplayTagCard(Tag value, int index) {
+    return AppCard(
       child: ListTile(
         leading: Text(index.toString()),
-        title: Text(value.tag_name),
+        title: (renaming_tag == index)?
+          TextFormField(
+            decoration: InputDecoration(
+              border: OutlineInputBorder(),
+            ),
+            controller: rename_controller,
+          )
+          : Text(value.tag_name),
         subtitle: Text("Used in : ${value.tag_count.toString()}"),
         trailing: Wrap(
           children: [
-            IconButton(onPressed: () => button_renameTag(value), icon: Icon(Icons.drive_file_rename_outline)),
+            if (renaming_tag == index) IconButton(onPressed: () => button_applyRenameTag(value), icon: Icon(Icons.check))
+            else IconButton(onPressed: () => button_toggleRenameTag(index), icon: Icon(Icons.drive_file_rename_outline)),
             IconButton(onPressed: () => button_deleteTag(value), icon: Icon(Icons.delete)),
           ],
         ),
@@ -116,7 +147,7 @@ class _CreateTagMenuState extends State<CreateTagMenu> {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
+    return AppCard(
       child: isCreating?
       createTagMenu()
       :

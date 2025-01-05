@@ -4,6 +4,7 @@ import 'package:song_player/code/database.dart';
 import 'package:song_player/code/utils.dart';
 import 'package:song_player/pages/view_playlist.dart';
 import 'package:song_player/widgets/AppNavigationWrap.dart';
+import 'package:song_player/widgets/Card.dart';
 import 'package:song_player/widgets/RoundDropdown.dart';
 
 class PlaylistPage extends StatefulWidget {
@@ -59,14 +60,13 @@ class _PlaylistPageState extends State<PlaylistPage> {
   Widget build(BuildContext context) {
     return AppNavigationWrap(
       page_name: "Playlists", 
-      child: Container(
-        padding: EdgeInsets.all(10),
-        child: ListView(
-          children: [
-            ...playlist_list.map((playlist) => playlistCard(playlist)),
-            if (is_creatingPlaylist) ...createPlaylistMenu() else createPlaylistButton(),
-          ],
-        ),
+      page: Pages.settingsPage,
+      padding: EdgeInsets.all(10),
+      child: ListView(
+        children: [
+          ...playlist_list.map((playlist) => playlistCard(playlist)),
+          if (is_creatingPlaylist) ...createPlaylistMenu() else createPlaylistButton(),
+        ],
       ),
     );
   }
@@ -75,7 +75,7 @@ class _PlaylistPageState extends State<PlaylistPage> {
     bool is_playing = (audio_handler.is_playing_playlist && (audio_handler.playing_playlist.playlist_id == playlist.playlist_id));
     return GestureDetector(
       onTap: () => button_viewPlaylist(playlist),
-      child: Card(
+      child: AppCard(
         child: ListTile(
           leading: const Icon(Icons.music_note),
           title: Text(playlist.playlist_name),
@@ -95,7 +95,7 @@ class _PlaylistPageState extends State<PlaylistPage> {
 
   // For creating new playlist
   Widget createPlaylistButton() {
-    return Card(
+    return AppCard(
       color: Theme.of(context).colorScheme.secondaryContainer,
       child: SizedBox(
         width: 64,
@@ -109,7 +109,7 @@ class _PlaylistPageState extends State<PlaylistPage> {
   }
   List<Widget> createPlaylistMenu() {
     return [
-      Card(
+      AppCard(
         child: Padding(
           padding: EdgeInsets.all(8),
           child: Column(
@@ -183,7 +183,7 @@ class _EmptyPlaylistMenuState extends State<EmptyPlaylistMenu> {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
+    return AppCard(
       child: Padding(
         padding: EdgeInsets.all(8),
         child: Column(
@@ -275,10 +275,37 @@ class _FilteredPlaylistMenuState extends State<FilteredPlaylistMenu> {
       inner_operator_list.add([]);
     });
   }
+  void button_removeConditionSet(int index) {
+    setState(() {
+      if (index == condition_list.length-1) {
+        if (index != 0) {
+          outer_operator_list.removeAt(index-1);
+        }
+      } else {
+        outer_operator_list.removeAt(index);
+      }
+      condition_list.removeAt(index);
+      inner_operator_list.removeAt(index);
+    });
+  }
   void button_addCondition(int index) {
     setState(() {
       condition_list[index].add(ConditionInput(0, -1));
       inner_operator_list[index].add(0);
+    });
+  }
+  void button_removeCondition(int index_1, int index_2) {
+    setState(() {
+      if (index_2 == condition_list[index_1].length-1) {
+        inner_operator_list[index_1].removeAt(index_2-1);
+      } else {
+        inner_operator_list[index_1].removeAt(index_2);
+      }
+      condition_list[index_1].removeAt(index_2);
+
+      if (condition_list[index_1].isEmpty) {
+        condition_list.removeAt(index_1);
+      }
     });
   }
   Future<void> button_onCreatePlaylist() async {
@@ -286,7 +313,15 @@ class _FilteredPlaylistMenuState extends State<FilteredPlaylistMenu> {
       if (mounted) alert(context, "Please Enter a valid playlist name");
       return;
     }
-    // todo : check if conditions are empty/valid
+    
+    for (final list in condition_list) {
+      for (final condition in list) {
+        if (condition.value == -1) {
+          if (mounted) alert(context, "Atleast one condition is not valid");
+          return;
+        }
+      }
+    }
 
     if (!await db.createFilterPlaylist(playlist_name_controller.text, condition_list, outer_operator_list, inner_operator_list)) {// todo
       if (mounted) alert(context, "Something went wrong while adding playlist to database.");
@@ -313,7 +348,7 @@ class _FilteredPlaylistMenuState extends State<FilteredPlaylistMenu> {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
+    return AppCard(
       child: Padding(
         padding: EdgeInsets.all(8),
         child: Column(
@@ -404,29 +439,55 @@ class _FilteredPlaylistMenuState extends State<FilteredPlaylistMenu> {
   }
 
   Widget outerConditionMenu(int index) {
-    return Card(
+    return AppCard(
       color: Theme.of(context).colorScheme.secondaryFixed,
-      child: Padding(
-        padding: EdgeInsets.all(8),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text("Condition Set ${index+1} : "),
-            if (condition_list[index].length == 1) conditionInputRow(index, 0)
-            else for (int i = 0; i < 2*condition_list[index].length-1; i++) (i%2 == 0)?innerConditionMenu(index, i~/2):innerOperatorInputCard(index, i~/2),
-            addConditionButton(index),
-          ],
-        ),
+      child: Stack(
+        children: [
+          Padding(
+            padding: EdgeInsets.all(8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text("Condition Set ${index+1} : "),
+                if (condition_list[index].length == 1) conditionInputRow(index, 0)
+                else for (int i = 0; i < 2*condition_list[index].length-1; i++) (i%2 == 0)?innerConditionMenu(index, i~/2):innerOperatorInputCard(index, i~/2),
+                addConditionButton(index),
+              ],
+            ),
+          ),
+          Align(
+            alignment: Alignment.topRight,
+            child: IconButton(
+              onPressed: () => button_removeConditionSet(index), 
+              icon: Icon(Icons.cancel)
+            ),
+          )
+        ],
       )
     );
   }
   Widget innerConditionMenu(int index_1, int index_2) {
-    return Card(
-      color: Theme.of(context).colorScheme.primaryFixed,
-      child: Padding(
-        padding: EdgeInsets.all(8),
-        child: conditionInputRow(index_1, index_2)
-      ),
+    return Stack(
+      children: [
+        AppCard(
+          color: Theme.of(context).colorScheme.primaryFixed,
+          padding: EdgeInsets.all(10),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text("Condition ${index_2+1} : "),
+              conditionInputRow(index_1, index_2)
+            ],
+          ),
+        ),
+        Align(
+          alignment: Alignment.topRight,
+          child: IconButton(
+            onPressed: () => button_removeCondition(index_1, index_2), 
+            icon: Icon(Icons.cancel)
+          ),
+        )
+      ],
     );
   }
   Widget conditionInputRow(int index_1, int index_2) {
