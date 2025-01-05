@@ -58,7 +58,7 @@ class SettingsManager {
 
   Future<void> initSettings() async {
     final Directory dir = await getApplicationDocumentsDirectory();
-    json_file = File('${dir.path}/settings.json');
+    json_file = File("${dir.path}/settings.json");
     if (!json_file.existsSync()) {
       useDefaultSettings();
       constructNotifiers();

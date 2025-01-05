@@ -73,7 +73,7 @@ class _TagListPageState extends State<TagListPage> {
       page_name: "Tag List",
       page: Pages.tagsPage,
       child: Padding(
-        padding: EdgeInsets.all(8),
+        padding: const EdgeInsets.all(8),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

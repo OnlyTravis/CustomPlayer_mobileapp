@@ -61,7 +61,7 @@ class _PlaylistPageState extends State<PlaylistPage> {
     return AppNavigationWrap(
       page_name: "Playlists", 
       page: Pages.settingsPage,
-      padding: EdgeInsets.all(10),
+      padding: const EdgeInsets.all(10),
       child: ListView(
         children: [
           ...playlist_list.map((playlist) => playlistCard(playlist)),
@@ -185,7 +185,7 @@ class _EmptyPlaylistMenuState extends State<EmptyPlaylistMenu> {
   Widget build(BuildContext context) {
     return AppCard(
       child: Padding(
-        padding: EdgeInsets.all(8),
+        padding: const EdgeInsets.all(8),
         child: Column(
           children: [
             playlistNameInput(),
@@ -199,12 +199,12 @@ class _EmptyPlaylistMenuState extends State<EmptyPlaylistMenu> {
   Widget playlistNameInput() {
     return Row(
       children: [
-        Text("Playlist Name : "),
+        const Text("Playlist Name : "),
         SizedBox(
           width: 256,
           height: 40,
           child: TextFormField(
-            decoration: InputDecoration(
+            decoration: const InputDecoration(
               border: OutlineInputBorder(),
               labelText: "Enter Name Here",
             ),
@@ -349,17 +349,15 @@ class _FilteredPlaylistMenuState extends State<FilteredPlaylistMenu> {
   @override
   Widget build(BuildContext context) {
     return AppCard(
-      child: Padding(
-        padding: EdgeInsets.all(8),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            playlistNameInput(),
-            for (int i = 0; i < 2*condition_list.length-1; i++) (i%2 == 0)?outerConditionMenu(i~/2):outerOperatorInputCard(i~/2),
-            addConditionSetButton(),
-            createCancelButtonSet()
-          ],
-        ),
+      padding: const EdgeInsets.all(8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          playlistNameInput(),
+          for (int i = 0; i < 2*condition_list.length-1; i++) (i%2 == 0)?outerConditionMenu(i~/2):outerOperatorInputCard(i~/2),
+          addConditionSetButton(),
+          createCancelButtonSet()
+        ],
       ),
     );
   }
@@ -367,13 +365,13 @@ class _FilteredPlaylistMenuState extends State<FilteredPlaylistMenu> {
   Widget playlistNameInput() {
     return Row(
       children: [
-        Text("Playlist Name : "),
+        const Text("Playlist Name : "),
         SizedBox(
           width: 256,
           height: 40,
           child: TextFormField(
-            textAlignVertical: TextAlignVertical(y: -1),
-            decoration: InputDecoration(
+            textAlignVertical: const TextAlignVertical(y: -1),
+            decoration: const InputDecoration(
               border: OutlineInputBorder(),
               labelText: "Enter Name Here",
             ),
@@ -403,12 +401,12 @@ class _FilteredPlaylistMenuState extends State<FilteredPlaylistMenu> {
     return TextButton(
       onPressed: button_addConditionSet, 
       child: Container(
-        padding: EdgeInsets.all(8),
+        padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.all(Radius.circular(16)),
+          borderRadius: const BorderRadius.all(Radius.circular(16)),
           color: Theme.of(context).colorScheme.secondaryContainer,
         ),
-        child: Row(
+        child: const Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(Icons.add),
@@ -422,12 +420,12 @@ class _FilteredPlaylistMenuState extends State<FilteredPlaylistMenu> {
     return TextButton(
       onPressed: () => button_addCondition(index), 
       child: Container(
-        padding: EdgeInsets.all(8),
+        padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.all(Radius.circular(16)),
+          borderRadius: const BorderRadius.all(Radius.circular(16)),
           color: Theme.of(context).colorScheme.inversePrimary,
         ),
-        child: Row(
+        child: const Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(Icons.add),
@@ -444,7 +442,7 @@ class _FilteredPlaylistMenuState extends State<FilteredPlaylistMenu> {
       child: Stack(
         children: [
           Padding(
-            padding: EdgeInsets.all(8),
+            padding: const EdgeInsets.all(8),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -459,7 +457,7 @@ class _FilteredPlaylistMenuState extends State<FilteredPlaylistMenu> {
             alignment: Alignment.topRight,
             child: IconButton(
               onPressed: () => button_removeConditionSet(index), 
-              icon: Icon(Icons.cancel)
+              icon: const Icon(Icons.cancel)
             ),
           )
         ],
@@ -471,7 +469,7 @@ class _FilteredPlaylistMenuState extends State<FilteredPlaylistMenu> {
       children: [
         AppCard(
           color: Theme.of(context).colorScheme.primaryFixed,
-          padding: EdgeInsets.all(10),
+          padding: const EdgeInsets.all(10),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -484,7 +482,7 @@ class _FilteredPlaylistMenuState extends State<FilteredPlaylistMenu> {
           alignment: Alignment.topRight,
           child: IconButton(
             onPressed: () => button_removeCondition(index_1, index_2), 
-            icon: Icon(Icons.cancel)
+            icon: const Icon(Icons.cancel)
           ),
         )
       ],

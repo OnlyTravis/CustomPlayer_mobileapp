@@ -5,7 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:song_player/code/database.dart';
 import 'package:song_player/code/settings_manager.dart';
+import 'package:song_player/code/utils.dart';
 import 'package:song_player/widgets/AppNavigationWrap.dart';
 import 'package:song_player/widgets/Card.dart';
 import 'package:song_player/widgets/RoundDropdown.dart';
@@ -75,6 +77,16 @@ class _SettingsPageState extends State<SettingsPage> {
       changed = true;
     });
   }
+  void button_exportFiles() {
+    confirm(context
+      , "Confirm Export", "Are you sure you want to export the database & settings file?\n(The files will be exported to /Music)"
+      , () async {
+        await db.exportDatabase();
+        if (mounted) alert(context, "Database & Settings Exported!");
+      }
+      , () => {}
+    );
+  }
 
   void setPickerColor(List<int> arr) {
     picker_color = Color.fromARGB(arr[3], arr[0], arr[1], arr[2]);
@@ -100,30 +112,38 @@ class _SettingsPageState extends State<SettingsPage> {
     return AppNavigationWrap(
       page_name: "Settings", 
       page: Pages.settingsPage,
-      padding: EdgeInsets.all(8),
-      child: ListView(
+      padding: const EdgeInsets.all(8),
+      child: Stack(
         children: [
-          DropDownInput("Playlist Buffer Length", Settings.playlistBufferLength, [5, 10, 20, 30]),
-          DropDownInput("Queue Max Length", Settings.maxQueueLength, [50, 100, 200, 300, -1]),
-          UIColorPicker(),
-          SliderInput("Container Opacity", Settings.containerOpacity, 0, 255),
-          UIBrightnessPicker(),
-          BGImageSelect("Default BG Image", Settings.defaultImagePath),
-          BGImageSelect("Song List Page BG Image", Settings.songListImagePath),
-          BGImageSelect("Player Page BG Image", Settings.playerImagePath),
-          BGImageSelect("Queue Page BG Image", Settings.queueImagePath),
-          BGImageSelect("Playlist Page BG Image", Settings.playlistImagePath),
-          BGImageSelect("Tags Page BG Image", Settings.tagImagePath),
-          BGImageSelect("Settings Page BG Image", Settings.settingImagePath),
-          if (changed) ApplyChangeButtons(),
+          ListView(
+            children: [
+              DropDownInput("Playlist Buffer Length", Settings.playlistBufferLength, [5, 10, 20, 30]),
+              DropDownInput("Queue Max Length", Settings.maxQueueLength, [50, 100, 200, 300, -1]),
+              UIColorPicker(),
+              SliderInput("Container Opacity", Settings.containerOpacity, 0, 255),
+              UIBrightnessPicker(),
+              BGImageSelect("Default BG Image", Settings.defaultImagePath),
+              BGImageSelect("Song List Page BG Image", Settings.songListImagePath),
+              BGImageSelect("Player Page BG Image", Settings.playerImagePath),
+              BGImageSelect("Queue Page BG Image", Settings.queueImagePath),
+              BGImageSelect("Playlist Page BG Image", Settings.playlistImagePath),
+              BGImageSelect("Tags Page BG Image", Settings.tagImagePath),
+              BGImageSelect("Settings Page BG Image", Settings.settingImagePath),
+              ExportFiles()
+            ],
+          ),
+          if (changed) Align(
+            alignment: Alignment.bottomCenter,
+            child: ApplyChangeButtons(),
+          ),
         ],
-      ),
+      )
     );
   }
   Widget DropDownInput(String label, Settings setting, List<int> options) {
     return AppCard(
       child: Padding(
-        padding: EdgeInsets.all(8),
+        padding: const EdgeInsets.all(8),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -146,7 +166,7 @@ class _SettingsPageState extends State<SettingsPage> {
   }
   Widget SliderInput(String label, Settings setting, int min, int max) {
     return AppCard(
-      padding: EdgeInsets.all(8),
+      padding: const EdgeInsets.all(8),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -179,7 +199,7 @@ class _SettingsPageState extends State<SettingsPage> {
   Widget UIColorPicker() {
     return AppCard(
       child: Padding(
-        padding: EdgeInsets.all(8),
+        padding: const EdgeInsets.all(8),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -201,7 +221,7 @@ class _SettingsPageState extends State<SettingsPage> {
   Widget UIBrightnessPicker() {
     return AppCard(
       child: Padding(
-        padding: EdgeInsets.all(8),
+        padding: const EdgeInsets.all(8),
         child: Row(
           children: [
             const Text("Dark Mode : "),
@@ -259,7 +279,7 @@ class _SettingsPageState extends State<SettingsPage> {
   }
   Widget BGImageSelect(String label, Settings setting) {
     return AppCard(
-      padding: EdgeInsets.all(8),
+      padding: const EdgeInsets.all(8),
       child: Row(
         children: [
           Text("$label : "),
@@ -267,16 +287,32 @@ class _SettingsPageState extends State<SettingsPage> {
             color: Theme.of(context).colorScheme.secondaryContainer,
             child: TextButton(
               onPressed: () => button_pickImage(setting),
-              child: Text("Select Image"),
+              child: const Text("Select Image"),
             ),
           ),
           if (settings_manager.getSetting(setting) != "") AppCard(
             color: Theme.of(context).colorScheme.secondaryContainer,
             child: IconButton(
               onPressed: () => button_removeImage(setting),
-              icon: Icon(Icons.cancel),
+              icon: const Icon(Icons.cancel),
             ),
           ),
+        ],
+      ),
+    );
+  }
+  Widget ExportFiles() {
+    return AppCard(
+      padding: const EdgeInsets.all(8),
+      child: Column(
+        children: [
+          const Text("Export Database & Settings File :"),
+          AppCard( 
+            child: TextButton(
+              onPressed: button_exportFiles, 
+              child: const Text("Export Files")
+            ),
+          )
         ],
       ),
     );

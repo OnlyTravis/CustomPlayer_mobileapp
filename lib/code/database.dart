@@ -1,6 +1,8 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:song_player/code/file_handler.dart';
+import 'package:song_player/code/settings_manager.dart';
 import 'package:song_player/pages/playlist.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -108,13 +110,14 @@ Future<void> initDatabase() async {
 }
 
 class DatabaseHandler {
+  String database_path = "";
   late Database db;
 
   Future<void> initDatabase() async {
-    final databasePath = await getDatabasesPath();
-    final path = '$databasePath/Song_Player.db';
+    final databaseFolderPath = await getDatabasesPath();
+    database_path = '$databaseFolderPath/Song_Player.db';
     db = await openDatabase(
-      path,
+      database_path,
       version: 1,
     );
     await db.execute('''
@@ -570,5 +573,12 @@ class DatabaseHandler {
       SELECT * FROM Playlists WHERE playlist_id = $playlist_id
     ''');
     return Playlist.fromMap(result.first);
+  }
+
+  Future<void> exportDatabase() async {
+    final File database_file = File(database_path);
+    
+    database_file.copy("${file_handler.root_folder_path}/Song_Player.db");
+    settings_manager.json_file.copy("${file_handler.root_folder_path}/Song_Player_settings.json");
   }
 }

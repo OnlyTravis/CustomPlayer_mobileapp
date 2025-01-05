@@ -32,7 +32,7 @@ class _QueuePageState extends State<QueuePage> {
       page: Pages.queuePage,
       child: ListView(
         children: [
-          if (audio_handler.song_queue.isEmpty) AppCard(
+          if (audio_handler.song_queue.isEmpty) const AppCard(
             child: ListTile(
               title: Text("No Song In Queue.  :("),
             )

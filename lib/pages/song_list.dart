@@ -154,7 +154,7 @@ class _SongListPageState extends State<SongListPage> {
       page: Pages.songListPage,
       child: Scaffold(
         appBar: is_select_mode?toolBar():null,
-        backgroundColor: Color.fromARGB(0, 0, 0, 0),
+        backgroundColor: const Color.fromARGB(0, 0, 0, 0),
         body: ListView(
           children: [
             if (current_folder.isNotEmpty) previousFolderCard(),
@@ -176,7 +176,7 @@ class _SongListPageState extends State<SongListPage> {
       ),
       title: Text(
         "Selected : ${selected_files.length}",
-        textScaler: TextScaler.linear(0.8),
+        textScaler: const TextScaler.linear(0.8),
       ),
       actions: [
         selectOptions()
@@ -200,7 +200,7 @@ class _SongListPageState extends State<SongListPage> {
       menuChildren: [
         MenuItemButton(
           onPressed: button_onMassEditSong,
-          child: Text("Mass Edit Song"),
+          child: const Text("Mass Edit Song"),
         ),
       ]
     );
@@ -225,11 +225,11 @@ class _SongListPageState extends State<SongListPage> {
                     children: [
                       IconButton(
                         onPressed: () => audio_handler.addToQueue(song), 
-                        icon: Icon(Icons.add)
+                        icon: const Icon(Icons.add)
                       ),
                       IconButton(
                         onPressed: () => audio_handler.replaceCurrent(song), 
-                        icon: Icon(Icons.play_arrow)
+                        icon: const Icon(Icons.play_arrow)
                       ),
                     ],
                   ),
@@ -239,14 +239,14 @@ class _SongListPageState extends State<SongListPage> {
                   children: [
                     TextButton(
                       onPressed: () => button_onFileCardView(song), 
-                      child: Text("View / Edit Song"),
+                      child: const Text("View / Edit Song"),
                     )
                   ],
                 )
               ],
             ),
             if (is_select_mode) Align(
-              alignment: Alignment(1.05, 5),
+              alignment: const Alignment(1.05, 5),
               child: Checkbox(
                 value: is_selected,
                 onChanged: (_) => button_onFileCardLongPress(index),
@@ -271,10 +271,10 @@ class _SongListPageState extends State<SongListPage> {
   Widget previousFolderCard() {
     return GestureDetector(
       onTap: button_onPreviousFolderTap,
-      child: AppCard(
-        child: const ListTile(
+      child: const AppCard(
+        child: ListTile(
           leading: Icon(Icons.folder),
-          title: Text("...")
+          title: Text("..")
         ),
       ),
     );

@@ -27,7 +27,7 @@ class _PlayerPageState extends State<PlayerPage> {
 
   void button_toFullScreen() {
     Navigator.of(context).push(
-      MaterialPageRoute(builder: (context) => FullScreenVideo())
+      MaterialPageRoute(builder: (context) => const FullScreenVideo())
     );
   }
 
@@ -56,7 +56,7 @@ class _PlayerPageState extends State<PlayerPage> {
       page: Pages.playerPage,
       child: Center(
         child: AppCard(
-          padding: EdgeInsets.symmetric(vertical: 8),
+          padding: const EdgeInsets.symmetric(vertical: 8),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             mainAxisSize: MainAxisSize.min,
@@ -76,10 +76,10 @@ class _PlayerPageState extends State<PlayerPage> {
     return AspectRatio(
       aspectRatio: 1,
       child: Container(
-        margin: EdgeInsets.all(16),
+        margin: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.secondaryContainer.withAlpha(settings_manager.getSetting(Settings.containerOpacity)),
-          borderRadius: BorderRadius.all(Radius.circular(12))
+          borderRadius: const BorderRadius.all(Radius.circular(12))
         ),
         child: Stack(
           children: [
@@ -99,10 +99,10 @@ class _PlayerPageState extends State<PlayerPage> {
               mainAxisAlignment: MainAxisAlignment.end,
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                SizedBox(height: double.infinity,),
+                const SizedBox(height: double.infinity,),
                 IconButton(
                   onPressed: button_toFullScreen, 
-                  icon: Icon(Icons.fullscreen)
+                  icon: const Icon(Icons.fullscreen)
                 )
               ],
             ),
@@ -141,7 +141,7 @@ class _PlayerPageState extends State<PlayerPage> {
               }
             ),
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -161,7 +161,7 @@ class _PlayerPageState extends State<PlayerPage> {
       builder: (context, snapshot) {
         bool is_playing = snapshot.data ?? false;
         return Padding(
-          padding: EdgeInsets.symmetric(horizontal: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 8),
           child: Stack(
             children: [
               Row(
@@ -169,7 +169,7 @@ class _PlayerPageState extends State<PlayerPage> {
                 children: [
                   IconButton(
                     onPressed: audio_handler.skipToPrevious, 
-                    icon: Icon(Icons.skip_previous),
+                    icon: const Icon(Icons.skip_previous),
                   ),
                   IconButton(
                     onPressed: is_playing?audio_handler.pause: audio_handler.play, 
@@ -177,7 +177,7 @@ class _PlayerPageState extends State<PlayerPage> {
                   ),
                   IconButton(
                     onPressed: audio_handler.skipToNext, 
-                    icon: Icon(Icons.skip_next),
+                    icon: const Icon(Icons.skip_next),
                   ),
                 ],
               ),
@@ -215,9 +215,9 @@ class _PlayerPageState extends State<PlayerPage> {
       child: Container(
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.primaryContainer,
-          borderRadius: BorderRadius.all(Radius.circular(10))
+          borderRadius: const BorderRadius.all(Radius.circular(10))
         ),
-        padding: EdgeInsets.all(6),
+        padding: const EdgeInsets.all(6),
         child: Wrap(
           children: [
             Icon(icon),

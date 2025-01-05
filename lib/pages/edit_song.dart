@@ -108,15 +108,15 @@ class _EditSongPageState extends State<EditSongPage> {
     return AppNavigationWrap(
       page_name: "Viewing Song",
       child: Scaffold(
-        backgroundColor: Color.fromARGB(0, 0, 0, 0),
+        backgroundColor: const Color.fromARGB(0, 0, 0, 0),
         body: Padding(
-          padding: EdgeInsets.all(8),
+          padding: const EdgeInsets.all(8),
           child: ListView(
             children: [
               InfoTable(),
-              SizedBox(height: 10),
+              const SizedBox(height: 10),
               TagList(),
-              if (is_editing) ...[SizedBox(height: 10), addTagMenu()]
+              if (is_editing) ...[const SizedBox(height: 10), addTagMenu()]
             ],
           )
         ),
@@ -134,7 +134,7 @@ class _EditSongPageState extends State<EditSongPage> {
       child: Column(
         children: [
           Table(
-            columnWidths: {
+            columnWidths: const {
               0: IntrinsicColumnWidth(),
               1: FlexColumnWidth()
             },
@@ -195,20 +195,20 @@ class _EditSongPageState extends State<EditSongPage> {
     return TableRow(
       children: [
         Container(
-          padding: EdgeInsets.all(6),
+          padding: const EdgeInsets.all(6),
           child: Text(
             "$title: ", 
             textAlign: TextAlign.right,
-            textScaler: TextScaler.linear(1.5),
+            textScaler: const TextScaler.linear(1.5),
           ),
         ),
         Container(
-          padding: EdgeInsets.all(6),
+          padding: const EdgeInsets.all(6),
           child: (is_editing && editable)? 
             SizedBox(
               height: 40,
               child: TextFormField(
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   border: OutlineInputBorder(),
                 ),
                 onChanged: (_) {
@@ -220,7 +220,7 @@ class _EditSongPageState extends State<EditSongPage> {
               ),
             ) : Text(
               value, 
-              textScaler: TextScaler.linear(1.5)
+              textScaler: const TextScaler.linear(1.5)
             ),
         ),
       ]
@@ -230,8 +230,8 @@ class _EditSongPageState extends State<EditSongPage> {
     return TableRow(
       children: [
         Container(
-          padding: EdgeInsets.all(6),
-          child: Text(
+          padding: const EdgeInsets.all(6),
+          child: const Text(
             "Volume: ", 
             textAlign: TextAlign.right,
             textScaler: TextScaler.linear(1.5),
@@ -239,12 +239,12 @@ class _EditSongPageState extends State<EditSongPage> {
         ),
         is_editing?
           Container(
-            padding: EdgeInsets.fromLTRB(6, 0, 0, 0),
+            padding: const EdgeInsets.fromLTRB(6, 0, 0, 0),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Text(volume.toStringAsFixed(2), textScaler: TextScaler.linear(1.5)),
+                Text(volume.toStringAsFixed(2), textScaler: const TextScaler.linear(1.5)),
                 Slider(
                   min: 0,
                   max: 1,
@@ -264,10 +264,10 @@ class _EditSongPageState extends State<EditSongPage> {
               ],
             ),
           ) : Container(
-            padding: EdgeInsets.all(6),
+            padding: const EdgeInsets.all(6),
             child: Text(
               volume.toStringAsFixed(2), 
-              textScaler: TextScaler.linear(1.5)
+              textScaler: const TextScaler.linear(1.5)
             ),
           ),
       ]
@@ -278,11 +278,11 @@ class _EditSongPageState extends State<EditSongPage> {
     return AppCard(
       child: Container(
         width: double.infinity,
-        padding: EdgeInsets.all(6),
+        padding: const EdgeInsets.all(6),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
+            const Text(
               "Tags : ",
               textScaler: TextScaler.linear(1.5),
             ),
@@ -305,11 +305,11 @@ class _EditSongPageState extends State<EditSongPage> {
     return AppCard(
       child: Container(
         width: double.infinity,
-        padding: EdgeInsets.all(6),
+        padding: const EdgeInsets.all(6),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
+            const Text(
               "Choose Tags to Add : ",
               textScaler: TextScaler.linear(1.5),
             ),

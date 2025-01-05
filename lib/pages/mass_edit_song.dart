@@ -118,7 +118,7 @@ class _MassEditSongPageState extends State<MassEditSongPage> {
   Widget build(BuildContext context) {
     return AppNavigationWrap(
       page_name: "Mass Edit Song", 
-      padding: EdgeInsets.all(8),
+      padding: const EdgeInsets.all(8),
       child: ListView(
         children: [
           SongListCard(),
@@ -133,11 +133,11 @@ class _MassEditSongPageState extends State<MassEditSongPage> {
   Widget SongListCard() {
     return AppCard(
       child: Padding(
-        padding: EdgeInsets.all(8),
+        padding: const EdgeInsets.all(8),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text("Selected Songs : ", textScaler: TextScaler.linear(1.5)),
+            const Text("Selected Songs : ", textScaler: TextScaler.linear(1.5)),
             SizedBox(
               height: 256,
               child: ListView(
@@ -154,7 +154,7 @@ class _MassEditSongPageState extends State<MassEditSongPage> {
   Widget EditAuthorCard() {
     return AppCard(
       child: Padding(
-        padding: EdgeInsets.all(8),
+        padding: const EdgeInsets.all(8),
         child: Column(
           children: [
             Row(
@@ -165,7 +165,7 @@ class _MassEditSongPageState extends State<MassEditSongPage> {
                   height: 40,
                   child: TextFormField(
                     decoration: InputDecoration(
-                      border: OutlineInputBorder(),
+                      border: const OutlineInputBorder(),
                       labelText: same_author?"":"<Authors are different>",
                     ),
                     controller: author_controller,
@@ -220,13 +220,13 @@ class _MassEditSongPageState extends State<MassEditSongPage> {
   Widget EditTagCard() {
     return AppCard(
       child: Padding(
-        padding: EdgeInsets.all(8),
+        padding: const EdgeInsets.all(8),
         child: Stack(
           children: [
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text("Tags : ", textScaler: TextScaler.linear(1.5)),
+                const Text("Tags : ", textScaler: TextScaler.linear(1.5)),
                 Wrap(
                   children: [
                     ...(common_tags_only?common_tag_list:tag_list).map((tag) => TagCard(
@@ -261,7 +261,7 @@ class _MassEditSongPageState extends State<MassEditSongPage> {
     List<Tag> addable_tags = all_tag_list.where((tag) => (common_tag_list.indexWhere((val) => val.tag_id == tag.tag_id) == -1)).toList();
     return AppCard(
       child: Padding(
-        padding: EdgeInsets.all(8),
+        padding: const EdgeInsets.all(8),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

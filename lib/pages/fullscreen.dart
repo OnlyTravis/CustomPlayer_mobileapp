@@ -49,7 +49,7 @@ class _FullScreenVideoState extends State<FullScreenVideo> {
                     is_rotated = !is_rotated;
                   });
                 }, 
-                icon: Icon(Icons.rotate_90_degrees_ccw)
+                icon: const Icon(Icons.rotate_90_degrees_ccw)
               ),
             )
           ],
