@@ -72,15 +72,19 @@ class _TagListPageState extends State<TagListPage> {
     return AppNavigationWrap(
       page_name: "Tag List",
       page: Pages.tagsPage,
-      child: Padding(
-        padding: const EdgeInsets.all(8),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ...tag_list.asMap().entries.map((entry) => DisplayTagCard(entry.value, entry.key)),
-            CreateTagMenu(onAdd: initTagList)
-          ],
-        )
+      padding: const EdgeInsets.all(8),
+      child: Stack(
+        children: [
+          ListView(
+            children: [
+              ...tag_list.asMap().entries.map((entry) => DisplayTagCard(entry.value, entry.key)),
+            ],
+          ),
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: CreateTagMenu(onAdd: initTagList),
+          )
+        ],
       ),
     );
   }
@@ -91,7 +95,7 @@ class _TagListPageState extends State<TagListPage> {
         leading: Text(index.toString()),
         title: (renaming_tag == index)?
           TextFormField(
-            decoration: InputDecoration(
+            decoration: const InputDecoration(
               border: OutlineInputBorder(),
             ),
             controller: rename_controller,

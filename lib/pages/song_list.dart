@@ -23,6 +23,7 @@ class _SongListPageState extends State<SongListPage> {
   List<int> selected_files = [];
   bool is_select_mode = false;
   bool all_selected = false;
+  SortingStyle sort = SortingStyle.nameAsc;
 
   Future<void> updateFileList(String dir) async {
     final List<FileEntity> tmp_list = file_handler.getFilesInDirectory(dir);
@@ -140,6 +141,21 @@ class _SongListPageState extends State<SongListPage> {
       MaterialPageRoute(builder: (context) => MassEditSongPage(edit_song_list: selected_song_list))
     );
   }
+  void button_onChangeSortDir() {
+    SortingStyle new_sort = SortingStyle.fromValues(sort.sort_type, !sort.is_asc);
+    DatabaseHandler.sortSongList(song_list, new_sort);
+    setState(() {
+      sort = new_sort;
+    });
+  }
+  void button_onChangeSortType() {
+    SortingStyle new_sort = SortingStyle.fromValues((sort.sort_type)%(SortingStyle.type_count-1) + 1, sort.is_asc);
+    DatabaseHandler.sortSongList(song_list, new_sort);
+    setState(() {
+      sort = new_sort;
+    });
+  }
+
 
   @override
   void initState() {
@@ -152,6 +168,21 @@ class _SongListPageState extends State<SongListPage> {
     return AppNavigationWrap(
       page_name: "Song List - /$current_folder", 
       page: Pages.songListPage,
+      actions: [
+        IconButton(
+          onPressed: button_onChangeSortType, 
+          icon: Wrap(
+            children: [
+              const Icon(Icons.sort),
+              Text(sort.type_name)
+            ],
+          ),
+        ),
+        IconButton(
+          onPressed: button_onChangeSortDir, 
+          icon: sort.is_asc ? const Icon(Icons.arrow_upward) : const Icon(Icons.arrow_downward),
+        ),
+      ],
       child: Scaffold(
         appBar: is_select_mode?toolBar():null,
         backgroundColor: const Color.fromARGB(0, 0, 0, 0),

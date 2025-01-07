@@ -305,12 +305,14 @@ class _SettingsPageState extends State<SettingsPage> {
     return AppCard(
       padding: const EdgeInsets.all(8),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text("Export Database & Settings File :"),
           AppCard( 
+            color: Theme.of(context).colorScheme.secondaryContainer,
             child: TextButton(
               onPressed: button_exportFiles, 
-              child: const Text("Export Files")
+              child: const Text("Click to Export Files")
             ),
           )
         ],

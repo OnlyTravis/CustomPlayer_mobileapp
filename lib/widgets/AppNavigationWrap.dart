@@ -19,7 +19,8 @@ class AppNavigationWrap extends StatelessWidget {
   final String page_name;
   final Pages page;
   final EdgeInsetsGeometry? padding;
-  const AppNavigationWrap({super.key, required this.page_name, this.page = Pages.otherPage, this.padding, required this.child});
+  final List<Widget> actions;
+  const AppNavigationWrap({super.key, required this.page_name, this.page = Pages.otherPage, this.padding, this.actions = const [], required this.child});
 
   String getBackgroundImagePath() {
     switch (page) {
@@ -66,6 +67,7 @@ class AppNavigationWrap extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.primaryContainer,
         title: Text(page_name),
+        actions: actions,
       ),
       body: Column(
         children: [

@@ -99,9 +99,46 @@ class Playlist {
 }
 
 enum SortingStyle {
-  none,
-  nameAsc,
-  nameDesc
+  none(sort_type : 0, is_asc : true),
+  nameAsc(sort_type : 1, is_asc : true),
+  nameDesc(sort_type : 1, is_asc : false),
+  fileNameAsc(sort_type : 2, is_asc : true),
+  fileNameDesc(sort_type : 2, is_asc : false);
+
+  static int type_count = 3;
+  final bool is_asc;
+  final int sort_type;
+
+  const SortingStyle({
+    required this.is_asc,
+    required this.sort_type
+  });
+
+  factory SortingStyle.fromValues(int sort_type, bool is_asc) {
+    if (is_asc) {
+      switch (sort_type) {
+        case 0: return SortingStyle.none;
+        case 1: return SortingStyle.nameAsc;
+        case 2: return SortingStyle.fileNameAsc;
+      }
+    } else {
+      switch (sort_type) {
+        case 0: return SortingStyle.none;
+        case 1: return SortingStyle.nameDesc;
+        case 2: return SortingStyle.fileNameDesc;
+      }
+    }
+    return SortingStyle.none;
+  }
+
+  String get type_name {
+    switch (sort_type) {
+      case 0: return "None";
+      case 1: return "Name";
+      case 2: return "File Name";
+      default: return "";
+    }
+  }
 }
 
 Future<void> initDatabase() async {
@@ -244,14 +281,14 @@ class DatabaseHandler {
     }
   }
 
-  void sortSongList(List<Song> song_list, SortingStyle sort) {
-    switch (sort) {
-      case SortingStyle.none: return;
-      case SortingStyle.nameAsc:
-        song_list.sort((a, b) => a.song_name.compareTo(b.song_name));
+  static void sortSongList(List<Song> song_list, SortingStyle sort) {
+    switch (sort.sort_type) {
+      case 0: return;
+      case 1:
+        song_list.sort((a, b) => (sort.is_asc?1:-1)*a.song_name.compareTo(b.song_name));
         return;
-      case SortingStyle.nameDesc:
-        song_list.sort((a, b) => b.song_name.compareTo(a.song_name));
+      case 2:
+        song_list.sort((a, b) => (sort.is_asc?1:-1)*a.song_path.compareTo(b.song_path));
         return;
     }
   }
@@ -476,11 +513,8 @@ class DatabaseHandler {
         SELECT * FROM Songs
       ''');
       final List<Song> song_list = result.map((song_map) => Song.fromMap(song_map)).toList();
-      switch (sort) {
-        case SortingStyle.none: return song_list;
-        case SortingStyle.nameAsc: return song_list..sort((a, b) => a.song_name.compareTo(b.song_name));
-        case SortingStyle.nameDesc: return song_list..sort((a, b) => b.song_name.compareTo(a.song_name));
-      }
+      sortSongList(song_list, sort);
+      return song_list;
     } catch (err) {
       return [];
     }
@@ -560,7 +594,10 @@ class DatabaseHandler {
       ''');
       final List<Playlist> playlist_list = result.map((playlist_map) => Playlist.fromMap(playlist_map)).toList();
       switch (sort) {
-        case SortingStyle.none: return playlist_list;
+        case SortingStyle.none: 
+        case SortingStyle.fileNameAsc:
+        case SortingStyle.fileNameDesc:
+          return playlist_list;
         case SortingStyle.nameAsc: return playlist_list..sort((a, b) => a.playlist_name.compareTo(b.playlist_name));
         case SortingStyle.nameDesc: return playlist_list..sort((a, b) => b.playlist_name.compareTo(a.playlist_name));
       }
