@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:song_player/code/audio_handler.dart';
 import 'package:song_player/code/database.dart';
+import 'package:song_player/code/utils.dart';
 import 'package:song_player/widgets/AppNavigationWrap.dart';
 import 'package:song_player/widgets/Card.dart';
+import 'package:song_player/widgets/RoundDropdown.dart';
 import 'package:song_player/widgets/TagCard.dart';
 
 class MassEditSongPage extends StatefulWidget {
@@ -22,6 +24,16 @@ class _MassEditSongPageState extends State<MassEditSongPage> {
   TextEditingController author_controller = TextEditingController();
   bool same_author = false;
   bool author_need_update = false;
+
+  String selected_playlist = "";
+  List<Playlist> playlist_list = [];
+
+  Future<void> initPlaylistList() async {
+    List<Playlist> tmp_playlist_list = await db.getAllPlaylists(sort: SortingStyle.nameAsc);
+    setState(() {
+      playlist_list = tmp_playlist_list.where((playlist) => !playlist.is_filtered_playlist).toList();
+    });
+  }
 
   void updateAuthorDisplay() {
     if (widget.edit_song_list[0].author != null) {
@@ -70,6 +82,15 @@ class _MassEditSongPageState extends State<MassEditSongPage> {
     });
   }
 
+  @override
+  void initState() {
+    updateAuthorDisplay();
+    updateTagList();
+    initPlaylistList();
+
+    super.initState();
+  }
+
   Future<void> button_addTagToSongs(Tag tag) async {
     for (int i = 0; i < widget.edit_song_list.length; i++) {
       if (!widget.edit_song_list[i].tag_id_list.contains(tag.tag_id)) {
@@ -106,12 +127,18 @@ class _MassEditSongPageState extends State<MassEditSongPage> {
       author_need_update = false;
     });
   }
+  Future<void> button_addToPlaylist() async {
+    final int index = playlist_list.indexWhere((playlist) => playlist.playlist_name == selected_playlist);
+    if (index == -1) {
+      alert(context, "Invalid Playlist Input");
+      return;
+    }
 
-  @override
-  void initState() {
-    updateAuthorDisplay();
-    updateTagList();
-    super.initState();
+    for (final song in widget.edit_song_list) {
+      await db.addSongToPlaylist(playlist_list[index].playlist_id, song.song_id);
+    }
+
+    if (mounted) alert(context, "Song Added to Playlist!");
   }
 
   @override
@@ -125,6 +152,7 @@ class _MassEditSongPageState extends State<MassEditSongPage> {
           EditAuthorCard(),
           EditTagCard(),
           AddTagCard(),
+          AddToPlaylistMenu(),
         ],
       ),
     );
@@ -279,6 +307,44 @@ class _MassEditSongPageState extends State<MassEditSongPage> {
               )
           ],
         ),
+      ),
+    );
+  }
+  Widget AddToPlaylistMenu() {
+    return AppCard(
+      padding: const EdgeInsets.all(8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text("Add to Playlist : ", textScaler: TextScaler.linear(1.5)),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              RoundDropDown(
+                value: selected_playlist,
+                options: playlist_list.map((playlist) => playlist.playlist_name).toList(), 
+                onChanged: (playlist_name) {
+                  if (playlist_name == null) return;
+                  setState(() {
+                    selected_playlist = playlist_name;
+                  });
+                }
+              ),
+              AppCard(
+                color: Theme.of(context).colorScheme.secondaryContainer,
+                child: TextButton(
+                  onPressed: button_addToPlaylist, 
+                  child: const Wrap(
+                    children: [
+                      Icon(Icons.add),
+                      Text("Add"),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

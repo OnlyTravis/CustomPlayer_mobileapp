@@ -73,17 +73,10 @@ class _TagListPageState extends State<TagListPage> {
       page_name: "Tag List",
       page: Pages.tagsPage,
       padding: const EdgeInsets.all(8),
-      child: Stack(
+      child: ListView(
         children: [
-          ListView(
-            children: [
-              ...tag_list.asMap().entries.map((entry) => DisplayTagCard(entry.value, entry.key)),
-            ],
-          ),
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: CreateTagMenu(onAdd: initTagList),
-          )
+          ...tag_list.asMap().entries.map((entry) => DisplayTagCard(entry.value, entry.key)),
+          CreateTagMenu(onAdd: initTagList),
         ],
       ),
     );
@@ -104,9 +97,9 @@ class _TagListPageState extends State<TagListPage> {
         subtitle: Text("Used in : ${value.tag_count.toString()}"),
         trailing: Wrap(
           children: [
-            if (renaming_tag == index) IconButton(onPressed: () => button_applyRenameTag(value), icon: Icon(Icons.check))
-            else IconButton(onPressed: () => button_toggleRenameTag(index), icon: Icon(Icons.drive_file_rename_outline)),
-            IconButton(onPressed: () => button_deleteTag(value), icon: Icon(Icons.delete)),
+            if (renaming_tag == index) IconButton(onPressed: () => button_applyRenameTag(value), icon: const Icon(Icons.check))
+            else IconButton(onPressed: () => button_toggleRenameTag(index), icon: const Icon(Icons.drive_file_rename_outline)),
+            IconButton(onPressed: () => button_deleteTag(value), icon: const Icon(Icons.delete)),
           ],
         ),
       ),
@@ -157,7 +150,7 @@ class _CreateTagMenuState extends State<CreateTagMenu> {
       :
       IconButton(
         onPressed: button_toggleCreateTag, 
-        icon: Icon(Icons.add),
+        icon: const Icon(Icons.add),
       ),
     );
   }
@@ -165,11 +158,11 @@ class _CreateTagMenuState extends State<CreateTagMenu> {
   Widget createTagMenu() {
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(8),
+      padding: const EdgeInsets.all(8),
       child: Column(
         children: [
           Table(
-            columnWidths: {
+            columnWidths: const {
               0: IntrinsicColumnWidth(),
               1: FlexColumnWidth()
             },
@@ -183,11 +176,11 @@ class _CreateTagMenuState extends State<CreateTagMenu> {
             children: [
               TextButton(
                 onPressed: button_createTag,
-                child: Text("Submit"),
+                child: const Text("Submit"),
               ),
               TextButton(
                 onPressed: button_toggleCreateTag, 
-                child: Text("Cancel"),
+                child: const Text("Cancel"),
               ),
             ],
           ),
@@ -203,7 +196,7 @@ class _CreateTagMenuState extends State<CreateTagMenu> {
           height: 40,
           child: TextFormField(
             decoration: InputDecoration(
-              border: OutlineInputBorder(),
+              border: const OutlineInputBorder(),
               labelText: place_holder,
             ),
             controller: controller,

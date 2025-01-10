@@ -5,7 +5,7 @@ class RoundDropDown extends StatelessWidget {
   final String? value;
   final Color? color;
   final EdgeInsetsGeometry padding; 
-  final Function(String?) onChanged;
+  final void Function(String?) onChanged;
   const RoundDropDown({
     super.key, 
     required this.options,
@@ -24,7 +24,7 @@ class RoundDropDown extends StatelessWidget {
       ),
       padding: padding,
       child: DropdownButton(
-        value: value,
+        value: options.contains(value) ? value : null,
         items: [
           ...options.map((string) => DropdownMenuItem<String>(
             value: string,

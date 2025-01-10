@@ -20,6 +20,19 @@ class _PlaylistPageState extends State<PlaylistPage> {
   bool is_creatingPlaylist = false;
   int create_playlist_type = 0;
 
+  Future<void> initPlaylistList() async {
+    List<Playlist> tmp = await db.getAllPlaylists(sort: SortingStyle.nameAsc);
+    setState(() {
+      playlist_list = tmp;
+    });
+  }
+
+  @override
+  void initState() {
+    initPlaylistList();
+    super.initState();
+  }
+
   void button_onCreatePlaylist() {
     setState(() {
       is_creatingPlaylist = true;
@@ -41,19 +54,6 @@ class _PlaylistPageState extends State<PlaylistPage> {
   }
   Future<void> button_onStopPlaylist() async {
     await audio_handler.stopPlaylist();
-  }
-
-  Future<void> initPlaylistList() async {
-    List<Playlist> tmp = await db.getAllPlaylists(SortingStyle.nameAsc);
-    setState(() {
-      playlist_list = tmp;
-    });
-  }
-
-  @override
-  void initState() {
-    initPlaylistList();
-    super.initState();
   }
 
   @override
@@ -102,7 +102,7 @@ class _PlaylistPageState extends State<PlaylistPage> {
         height: 64,
         child: IconButton(
           onPressed: button_onCreatePlaylist, 
-          icon: Icon(Icons.add),
+          icon: const Icon(Icons.add),
         ),
       )
     );
@@ -110,18 +110,16 @@ class _PlaylistPageState extends State<PlaylistPage> {
   List<Widget> createPlaylistMenu() {
     return [
       AppCard(
-        child: Padding(
-          padding: EdgeInsets.all(8),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                "Create New Playlist",
-                textScaler: TextScaler.linear(1.5),
-              ),
-              playlistTypeInput(),
-            ],
-          ),
+        padding: const EdgeInsets.all(8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              "Create New Playlist",
+              textScaler: TextScaler.linear(1.5),
+            ),
+            playlistTypeInput(),
+          ],
         ),
       ),
       createPlaylistMenuTypes(),
@@ -336,7 +334,6 @@ class _FilteredPlaylistMenuState extends State<FilteredPlaylistMenu> {
     final List<Tag> tmp = await db.getAllTags();
     setState(() {
       tag_list = tmp;
-      print(tmp);
     });
   }
   

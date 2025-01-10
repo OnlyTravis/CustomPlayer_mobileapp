@@ -202,6 +202,8 @@ class MusicHandler extends BaseAudioHandler with SeekHandler {
     queue.add(queue.value);
   }
   Future<void> updateSongsInQueue() async {
+    if (song_queue.isEmpty) return;
+
     List<int> updateIdList = [];
     List<Song> updateSongList = [];
     for (int i = 0; i < song_queue.length; i++) {

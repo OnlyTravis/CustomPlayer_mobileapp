@@ -26,7 +26,7 @@ void confirm(BuildContext context, String title, String text, Function onConfirm
   );
 }
 
-void alert(BuildContext context, String text, {int duration = 4}) {
+void alert(BuildContext context, String text, {int duration = 1}) {
   final snack_bar = SnackBar(
     content: Text(text),
     duration: Duration(seconds: duration),

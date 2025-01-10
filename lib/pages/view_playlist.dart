@@ -16,11 +16,24 @@ class _ViewPlaylistPageState extends State<ViewPlaylistPage> {
   late Playlist playlist;
   List<Song> song_list = [];
 
+  TextEditingController playlist_name_controller = TextEditingController();
+  bool is_editing = false;
+  bool need_update = false;
+
   Future<void> updateSongList() async {
     final List<Song> tmp_list = await db.getAllSongsFromPlaylist(playlist, SortingStyle.nameAsc);
     setState(() {
       song_list = tmp_list;
     });
+  }
+
+  @override
+  void initState() {
+    playlist = widget.playlist;
+    playlist_name_controller.text = playlist.playlist_name;
+
+    updateSongList();
+    super.initState();
   }
 
   Future<void> button_onUpdatePlaylist() async {
@@ -37,7 +50,7 @@ class _ViewPlaylistPageState extends State<ViewPlaylistPage> {
       if (mounted) {
         Navigator.of(context).pushAndRemoveUntil(
           PageRouteBuilder(
-            pageBuilder: (context, animation1, animation2) => PlaylistPage(),
+            pageBuilder: (context, animation1, animation2) => const PlaylistPage(),
             transitionDuration: Duration.zero,
             reverseTransitionDuration: Duration.zero,
           ),
@@ -46,25 +59,56 @@ class _ViewPlaylistPageState extends State<ViewPlaylistPage> {
       }
     }, () => {});
   }
+  void button_toggleEditMode() {
+    setState(() {
+      is_editing = !is_editing;
+    });
+  }
+  Future<void> button_applyChange() async {
+    if (playlist_name_controller.text.isEmpty) {
+      alert(context, "Please enter a valid playlist name.");
+      return;
+    }
 
-  @override
-  void initState() {
-    playlist = widget.playlist;
-    updateSongList();
-    super.initState();
+    if (playlist_name_controller.text != playlist.playlist_name) {
+      await db.renamePlaylist(playlist.playlist_id, playlist_name_controller.text);
+    }
+
+    setState(() {
+      playlist.playlist_name = playlist_name_controller.text;
+      need_update = false;
+      is_editing = false;
+    });
+  }
+  void button_resetChange() {
+    playlist_name_controller.text = playlist.playlist_name;
+    setState(() {
+      need_update = false;
+      is_editing = false;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return AppNavigationWrap(
       page_name: "Viewing Playlist", 
-      padding: EdgeInsets.all(8),
-      child: ListView(
-        children: [
-          InfoTable(),
-          SongList(),
-          ActionBar(),
-        ],
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: Padding(
+          padding: const EdgeInsets.all(8),
+          child: ListView(
+            children: [
+              InfoTable(),
+              SongList(),
+              ActionBar(),
+            ],
+          ),
+        ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: button_toggleEditMode,
+          backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+          child: const Icon(Icons.edit),
+        ),
       ),
     );
   }
@@ -73,14 +117,11 @@ class _ViewPlaylistPageState extends State<ViewPlaylistPage> {
     return AppCard(
       child: Container(
         width: double.infinity,
-        padding: EdgeInsets.all(6),
+        padding: const EdgeInsets.all(6),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              "Songs : ",
-              textScaler: TextScaler.linear(1.5),
-            ),
+            const Text("Songs : ", textScaler: TextScaler.linear(1.5)),
             ...song_list.map((song) => DisplaySong(song))
           ],
         )
@@ -93,38 +134,90 @@ class _ViewPlaylistPageState extends State<ViewPlaylistPage> {
  
   Widget InfoTable() {
     return AppCard(
-      child: Table(
-        columnWidths: {
-          0: IntrinsicColumnWidth(),
-          1: FlexColumnWidth()
-        },
-        defaultVerticalAlignment: TableCellVerticalAlignment.top,
+      child: Column(
         children: [
-          InfoRow("Name", playlist.playlist_name, true),
-          InfoRow("Count", playlist.song_id_list.length.toString(), false),
-          InfoRow("Type", playlist.is_filtered_playlist?"Filtered Playlist":"Regular Playlist", false),
-          InfoRow("id", playlist.playlist_id.toString(), false),
+          Table(
+            columnWidths: const {
+              0: IntrinsicColumnWidth(),
+              1: FlexColumnWidth()
+            },
+            defaultVerticalAlignment: TableCellVerticalAlignment.top,
+            children: [
+              InfoRow("Name", playlist.playlist_name, editable: true, controller: playlist_name_controller),
+              InfoRow("Count", playlist.song_id_list.length.toString()),
+              InfoRow("Type", playlist.is_filtered_playlist ? "Filtered Playlist" : "Regular Playlist"),
+              InfoRow("id", playlist.playlist_id.toString()),
+            ],
+          ),
+          if (need_update) Row(
+            children: [
+              TextButton(
+                onPressed: button_applyChange, 
+                child: Card(
+                  color: Theme.of(context).colorScheme.primaryContainer,
+                  child: const Padding(
+                    padding: EdgeInsets.all(6),
+                    child: Wrap(
+                      children: [
+                        Icon(Icons.update),
+                        Text("Apply Changes")
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              TextButton(
+                onPressed: button_resetChange, 
+                child: Card(
+                  color: Theme.of(context).colorScheme.primaryContainer,
+                  child: const Padding(
+                    padding: EdgeInsets.all(6),
+                    child: Wrap(
+                      children: [
+                        Icon(Icons.cancel),
+                        Text("Reset Changes")
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          )
         ],
-      ),
+      )
     );
   }
-  TableRow InfoRow(String title, String value, bool editable) {
+  TableRow InfoRow(String title, String value, {bool editable = false, TextEditingController? controller}) {
     return TableRow(
       children: [
         Container(
-          padding: EdgeInsets.all(6),
+          padding: const EdgeInsets.all(6),
           child: Text(
             "$title: ", 
             textAlign: TextAlign.right,
-            textScaler: TextScaler.linear(1.5),
+            textScaler: const TextScaler.linear(1.5),
           ),
         ),
         Container(
-          padding: EdgeInsets.all(6),
-          child: Text(
-            value, 
-            textScaler: TextScaler.linear(1.5)
-          ),
+          padding: const EdgeInsets.all(6),
+          child: (is_editing && editable)? 
+            SizedBox(
+              height: 40,
+              child: TextFormField(
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                ),
+                onChanged: (_) {
+                  setState(() {
+                    need_update = true;
+                  });
+                },
+                controller: controller,
+              ),
+            ) : Text(
+              value, 
+              textScaler: const TextScaler.linear(1.5)
+            ),
         ),
       ]
     );

@@ -57,14 +57,19 @@ class _QueuePageState extends State<QueuePage> {
               Icon(song.is_video?Icons.video_file:Icons.audio_file)
             ],
           ),
-          title: Text(song.song_name),
+          title: Text(
+            song.song_name, 
+            style: (audio_handler.current_queue_index == index)?const TextStyle(
+              color: Color.fromRGBO(68, 65, 208, 1),
+            ):null
+          ),
           trailing: Wrap(
             children: [
               SizedBox(
                 width: 40,
                 child: IconButton(
                   onPressed: () => audio_handler.removeQueueItem_(index), 
-                  icon: Icon(Icons.delete)
+                  icon: const Icon(Icons.delete)
                 ),
               ),
               SizedBox(
@@ -72,7 +77,7 @@ class _QueuePageState extends State<QueuePage> {
                 child: IconButton(
                   onPressed: (index == 0)?null:() => audio_handler.moveQueueItem(index, index-1), 
                   color: (index == 0)?const Color.fromARGB(101, 66, 66, 66):null,
-                  icon: Icon(Icons.arrow_upward)
+                  icon: const Icon(Icons.arrow_upward)
                 ),
               ),
               SizedBox(
@@ -80,7 +85,7 @@ class _QueuePageState extends State<QueuePage> {
                 child: IconButton(
                   onPressed: (index == audio_handler.song_queue.length-1)?null:() => audio_handler.moveQueueItem(index, index+1), 
                   color: (index == audio_handler.song_queue.length-1)?const Color.fromARGB(101, 66, 66, 66):null,
-                  icon: Icon(Icons.arrow_downward)
+                  icon: const Icon(Icons.arrow_downward)
                 ),
               ),
             ],

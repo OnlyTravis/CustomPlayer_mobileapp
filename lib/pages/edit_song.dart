@@ -4,6 +4,7 @@ import 'package:song_player/code/database.dart';
 import 'package:song_player/code/utils.dart';
 import 'package:song_player/widgets/AppNavigationWrap.dart';
 import 'package:song_player/widgets/Card.dart';
+import 'package:song_player/widgets/RoundDropdown.dart';
 import 'package:song_player/widgets/TagCard.dart';
 
 class EditSongPage extends StatefulWidget {
@@ -14,6 +15,7 @@ class EditSongPage extends StatefulWidget {
 }
 
 class _EditSongPageState extends State<EditSongPage> {
+  List<Playlist> playlist_list = [];
   List<Tag> song_tag_list = [];
   List<Tag> tag_list = [];
 
@@ -23,25 +25,33 @@ class _EditSongPageState extends State<EditSongPage> {
 
   TextEditingController author_controller = TextEditingController();
   TextEditingController song_name_controller = TextEditingController();
+  String selected_playlist = "";
 
   void initControllers() {
     author_controller.text = widget.song.author.toString();
     song_name_controller.text = widget.song.song_name;
   }
 
-  Future<void> initTagList() async {
-    final List<Tag> tmp_1 = await db.getTagsFromSongId(widget.song.song_id);
-    final List<Tag> tmp_2 = await db.getAllTags();
+  Future<void> updateTagList() async {
+    final List<Tag> tmp_song_tag_list = await db.getTagsFromSongId(widget.song.song_id);
+    final List<Tag> tmp_all_tag_list = await db.getAllTags();
     setState(() {
-      song_tag_list = tmp_1;
-      tag_list = tmp_2;
+      song_tag_list = tmp_song_tag_list;
+      tag_list = tmp_all_tag_list;
+    });
+  }
+  Future<void> initPlaylistList() async {
+    List<Playlist> tmp_playlist_list = await db.getAllPlaylists(sort: SortingStyle.nameAsc);
+    setState(() {
+      playlist_list = tmp_playlist_list.where((playlist) => !playlist.is_filtered_playlist).toList();
     });
   }
 
   @override
   void initState() {
     initControllers();
-    initTagList();
+    updateTagList();
+    initPlaylistList();
 
     setState(() {
       volume = widget.song.volume;
@@ -94,13 +104,23 @@ class _EditSongPageState extends State<EditSongPage> {
   }
   Future<void> button_onAddTag(Tag tag) async {
     await db.addTagToSong(widget.song.song_id, tag.tag_id);
-    await initTagList();
+    await updateTagList();
     if (mounted) alert(context, "Tag \"${tag.tag_name}\" Added to Song!");
   }
   Future<void> button_onRemoveTag(Tag tag) async {
     await db.removeTagFromSong(widget.song.song_id, tag.tag_id);
-    await initTagList();
+    await updateTagList();
     if (mounted) alert(context, "Tag \"${tag.tag_name}\" Removed to Song!");
+  }
+  Future<void> button_addToPlaylist() async {
+    final int index = playlist_list.indexWhere((playlist) => playlist.playlist_name == selected_playlist);
+    if (index == -1) {
+      alert(context, "Invalid Playlist Input");
+      return;
+    }
+
+    await db.addSongToPlaylist(playlist_list[index].playlist_id, widget.song.song_id);
+    if (mounted) alert(context, "Song Added to Playlist!");
   }
 
   @override
@@ -108,7 +128,7 @@ class _EditSongPageState extends State<EditSongPage> {
     return AppNavigationWrap(
       page_name: "Viewing Song",
       child: Scaffold(
-        backgroundColor: const Color.fromARGB(0, 0, 0, 0),
+        backgroundColor: Colors.transparent,
         body: Padding(
           padding: const EdgeInsets.all(8),
           child: ListView(
@@ -116,7 +136,11 @@ class _EditSongPageState extends State<EditSongPage> {
               InfoTable(),
               const SizedBox(height: 10),
               TagList(),
-              if (is_editing) ...[const SizedBox(height: 10), addTagMenu()]
+              if (is_editing) ...[
+                const SizedBox(height: 10), 
+                AddTagMenu()
+              ],
+              AddToPlaylistMenu(),
             ],
           )
         ),
@@ -301,7 +325,7 @@ class _EditSongPageState extends State<EditSongPage> {
       ),
     );
   }
-  Widget addTagMenu() {
+  Widget AddTagMenu() {
     return AppCard(
       child: Container(
         width: double.infinity,
@@ -325,6 +349,44 @@ class _EditSongPageState extends State<EditSongPage> {
             )
           ],
         ), 
+      ),
+    );
+  }
+  Widget AddToPlaylistMenu() {
+    return AppCard(
+      padding: const EdgeInsets.all(8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text("Add to Playlist : ", textScaler: TextScaler.linear(1.5)),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              RoundDropDown(
+                value: selected_playlist,
+                options: playlist_list.map((playlist) => playlist.playlist_name).toList(), 
+                onChanged: (playlist_name) {
+                  if (playlist_name == null) return;
+                  setState(() {
+                    selected_playlist = playlist_name;
+                  });
+                }
+              ),
+              AppCard(
+                color: Theme.of(context).colorScheme.secondaryContainer,
+                child: TextButton(
+                  onPressed: button_addToPlaylist, 
+                  child: const Wrap(
+                    children: [
+                      Icon(Icons.add),
+                      Text("Add"),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

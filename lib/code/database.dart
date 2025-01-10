@@ -466,6 +466,19 @@ class DatabaseHandler {
       return false;
     }
   }
+  Future<bool> renamePlaylist(int playlist_id, String new_name) async {
+    try {
+      await db.rawUpdate('''
+        UPDATE Playlists
+        SET playlist_name = '$new_name'
+        WHERE playlist_id = $playlist_id
+      ''');
+
+      return true;
+    } catch (err) {
+      return false;
+    }
+  }
   Future<bool> addSongToPlaylist(int playlist_id, int song_id) async {
     try {
       // 1. Fetch Playlist's record & Update its song_id_list
@@ -587,7 +600,7 @@ class DatabaseHandler {
     return Tag.fromMap(result.first);
   }
 
-  Future<List<Playlist>> getAllPlaylists(SortingStyle sort) async {
+  Future<List<Playlist>> getAllPlaylists({ SortingStyle sort = SortingStyle.none }) async {
     try {
       final result = await db.rawQuery('''
         SELECT * FROM Playlists
