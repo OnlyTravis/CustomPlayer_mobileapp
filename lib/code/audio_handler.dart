@@ -329,8 +329,7 @@ class MusicHandler extends BaseAudioHandler with SeekHandler {
 
     if (is_opened) {
       syncVideoPlayer();
-    } else {
-      
+      queue.add(queue.value);
     }
   }
 

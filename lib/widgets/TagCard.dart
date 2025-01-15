@@ -29,7 +29,7 @@ class TagCard extends StatelessWidget {
               child: Text(value.tag_name),
             ),
             Container(
-              padding: EdgeInsets.all(6),
+              padding: const EdgeInsets.all(6),
               color: Theme.of(context).colorScheme.surfaceDim,
               child: Text(value.tag_count.toString(),),
             ),
