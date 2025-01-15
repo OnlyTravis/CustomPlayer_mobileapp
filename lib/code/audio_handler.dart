@@ -61,6 +61,7 @@ class MusicHandler extends BaseAudioHandler with SeekHandler {
     audio_player.playbackEventStream.map(_transformEvent).pipe(playbackState);
     _listenForDurationChanges();
     _listenForSongEnd();
+    Timer timer = Timer.periodic(const Duration(seconds: 1), (_) => checkSync());
   }
 
   MediaItem toMediaItem(Song song, Duration duration) {
@@ -105,7 +106,6 @@ class MusicHandler extends BaseAudioHandler with SeekHandler {
       queueIndex: event.currentIndex,
     );
   }
-  
   void _listenForDurationChanges() {
     audio_player.durationStream.listen((duration) {
       mediaItem.add(mediaItem.value?.copyWith(duration: duration));
@@ -309,6 +309,17 @@ class MusicHandler extends BaseAudioHandler with SeekHandler {
     playing_mode = mode;
   }
 
+  Future<void> checkSync() async {
+    if (!is_playing_video || !app_opened) return;
+
+    Duration video_position = await video_controller.position ?? Duration.zero;
+    if (video_position == Duration.zero) return;
+
+    if ((video_position - audio_player.position).abs() > const Duration(milliseconds: 300)) {
+      video_controller.seekTo(audio_player.position + const Duration(milliseconds: 350));
+    }
+    
+  }
   Future<void> syncVideoPlayer() async {
     if (!video_is_inited) return;
 
@@ -321,10 +332,10 @@ class MusicHandler extends BaseAudioHandler with SeekHandler {
 
     // 2. Sync playing state
     if (audio_player.playing) await video_controller.play();
-    await video_controller.seekTo(audio_player.position);
+    await video_controller.seekTo(audio_player.position + const Duration(milliseconds: 350));
   }
   void setAppOpened(bool is_opened) {
-    if (app_opened != is_opened) return;
+    if (app_opened == is_opened) return;
     app_opened = is_opened;
 
     if (is_opened) {
