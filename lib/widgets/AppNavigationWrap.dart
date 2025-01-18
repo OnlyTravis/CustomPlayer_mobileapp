@@ -84,7 +84,7 @@ class AppNavigationWrap extends StatelessWidget {
               child: child,
             )
           ),
-          CommonNavigationBar()
+          const CommonNavigationBar()
         ]
       ),
     );

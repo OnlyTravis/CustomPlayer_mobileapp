@@ -32,7 +32,7 @@ class _CommonNavigationBarState extends State<CommonNavigationBar> {
   Widget build(BuildContext context) {
     return Container(
       color: Theme.of(context).colorScheme.primaryContainer,
-      padding: EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -52,7 +52,7 @@ class _CommonNavigationBarState extends State<CommonNavigationBar> {
     return GestureDetector(
       onTap: () => button_navigationButtonOnPress(index),
       child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 5),
+        padding: const EdgeInsets.symmetric(horizontal: 5),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(10),
           color: (selected == index)?const Color.fromARGB(44, 93, 93, 93):null,
@@ -83,12 +83,12 @@ class _CommonNavigationBarState extends State<CommonNavigationBar> {
 
   Widget routeFromIndex(int index) {
     switch (index) {
-      case 0: return SongListPage();
-      case 1: return PlayerPage();
-      case 2: return QueuePage();
-      case 3: return PlaylistPage();
-      case 4: return TagListPage();
-      case 5: return SettingsPage();
+      case 0: return const SongListPage();
+      case 1: return const PlayerPage();
+      case 2: return const QueuePage();
+      case 3: return const PlaylistPage();
+      case 4: return const TagListPage();
+      case 5: return const SettingsPage();
     }
     return Container();
   }

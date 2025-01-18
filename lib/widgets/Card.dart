@@ -11,17 +11,17 @@ class AppCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: padding,
-      margin: EdgeInsets.all(4),
+      margin: const EdgeInsets.all(4),
       decoration: BoxDecoration(
         boxShadow: [
           BoxShadow(
             color: Colors.grey.withAlpha(64),
             spreadRadius: 1,
             blurRadius: 1,
-            offset: Offset(1, 1), // changes position of shadow
+            offset: const Offset(1, 1), // changes position of shadow
           ),
         ],
-        borderRadius: BorderRadius.all(Radius.circular(10)),
+        borderRadius: const BorderRadius.all(Radius.circular(10)),
         color: (color ?? Theme.of(context).colorScheme.surfaceContainerLow).withAlpha(settings_manager.getSetting(Settings.containerOpacity)),
       ),
       child: child,

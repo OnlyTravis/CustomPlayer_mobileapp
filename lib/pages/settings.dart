@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:file_picker/file_picker.dart';
+
 import 'package:song_player/code/database.dart';
 import 'package:song_player/code/settings_manager.dart';
 import 'package:song_player/code/utils.dart';
@@ -77,6 +79,19 @@ class _SettingsPageState extends State<SettingsPage> {
       changed = true;
     });
   }
+  Future<void> button_importDatabase() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles();
+    if (result == null) return;
+
+    File file = File(result.files.single.path!);
+    if (!file.path.endsWith(".db")) {
+      if (mounted) alert(context, "Please provide a file that ends with .db");
+      return;
+    }
+    
+    await db.importDatabase(file);
+    if (mounted) alert(context, "Database Imported !");
+  }
   void button_exportFiles() {
     confirm(context
       , "Confirm Export", "Are you sure you want to export the database & settings file?\n(The files will be exported to /Music)"
@@ -129,6 +144,7 @@ class _SettingsPageState extends State<SettingsPage> {
               BGImageSelect("Playlist Page BG Image", Settings.playlistImagePath),
               BGImageSelect("Tags Page BG Image", Settings.tagImagePath),
               BGImageSelect("Settings Page BG Image", Settings.settingImagePath),
+              ImportDatabase(),
               ExportFiles()
             ],
           ),
@@ -297,6 +313,24 @@ class _SettingsPageState extends State<SettingsPage> {
               icon: const Icon(Icons.cancel),
             ),
           ),
+        ],
+      ),
+    );
+  }
+  Widget ImportDatabase() {
+    return AppCard(
+      padding: const EdgeInsets.all(8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text("Import Database File :"),
+          AppCard( 
+            color: Theme.of(context).colorScheme.secondaryContainer,
+            child: TextButton(
+              onPressed: button_importDatabase, 
+              child: const Text("Click to Import Database")
+            ),
+          )
         ],
       ),
     );

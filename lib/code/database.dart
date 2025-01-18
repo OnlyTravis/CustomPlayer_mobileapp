@@ -625,10 +625,13 @@ class DatabaseHandler {
     return Playlist.fromMap(result.first);
   }
 
+  Future<void> importDatabase(File new_file) async {
+    await new_file.copy(database_path);
+  }
   Future<void> exportDatabase() async {
     final File database_file = File(database_path);
     
-    database_file.copy("${file_handler.root_folder_path}/Song_Player.db");
-    settings_manager.json_file.copy("${file_handler.root_folder_path}/Song_Player_settings.json");
+    await database_file.copy("${file_handler.root_folder_path}/Song_Player.db");
+    await settings_manager.json_file.copy("${file_handler.root_folder_path}/Song_Player_settings.json");
   }
 }
