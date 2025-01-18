@@ -61,7 +61,7 @@ class MusicHandler extends BaseAudioHandler with SeekHandler {
     audio_player.playbackEventStream.map(_transformEvent).pipe(playbackState);
     _listenForDurationChanges();
     _listenForSongEnd();
-    Timer timer = Timer.periodic(const Duration(seconds: 1), (_) => checkSync());
+    Timer.periodic(const Duration(seconds: 1), (_) => checkSync());
   }
 
   MediaItem toMediaItem(Song song, Duration duration) {
