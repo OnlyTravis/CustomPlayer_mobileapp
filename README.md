@@ -1,5 +1,7 @@
 # CustomPlayer
 
+My First Flutter Project
+
 A music playing Android app that supports both video and audio playing.
 (Useable but still WIP)
 

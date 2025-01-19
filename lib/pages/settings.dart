@@ -10,6 +10,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:song_player/code/database.dart';
 import 'package:song_player/code/settings_manager.dart';
 import 'package:song_player/code/utils.dart';
+import 'package:song_player/pages/bg_images.dart';
 import 'package:song_player/widgets/AppNavigationWrap.dart';
 import 'package:song_player/widgets/Card.dart';
 import 'package:song_player/widgets/RoundDropdown.dart';
@@ -93,13 +94,19 @@ class _SettingsPageState extends State<SettingsPage> {
     if (mounted) alert(context, "Database Imported !");
   }
   void button_exportFiles() {
-    confirm(context
-      , "Confirm Export", "Are you sure you want to export the database & settings file?\n(The files will be exported to /Music)"
-      , () async {
+    confirm(context, 
+      "Confirm Export", 
+      "Are you sure you want to export the database & settings file?\n(The files will be exported to /Music)", 
+      () async {
         await db.exportDatabase();
         if (mounted) alert(context, "Database & Settings Exported!");
-      }
-      , () => {}
+      }, 
+      () => {}
+    );
+  }
+  void button_onSelectImage() {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) => const BackgroundImagePage())
     );
   }
 
@@ -137,13 +144,7 @@ class _SettingsPageState extends State<SettingsPage> {
               UIColorPicker(),
               SliderInput("Container Opacity", Settings.containerOpacity, 0, 255),
               UIBrightnessPicker(),
-              BGImageSelect("Default BG Image", Settings.defaultImagePath),
-              BGImageSelect("Song List Page BG Image", Settings.songListImagePath),
-              BGImageSelect("Player Page BG Image", Settings.playerImagePath),
-              BGImageSelect("Queue Page BG Image", Settings.queueImagePath),
-              BGImageSelect("Playlist Page BG Image", Settings.playlistImagePath),
-              BGImageSelect("Tags Page BG Image", Settings.tagImagePath),
-              BGImageSelect("Settings Page BG Image", Settings.settingImagePath),
+              BGImageSelect(),
               ImportDatabase(),
               ExportFiles()
             ],
@@ -293,26 +294,20 @@ class _SettingsPageState extends State<SettingsPage> {
       ),
     );
   }
-  Widget BGImageSelect(String label, Settings setting) {
+  Widget BGImageSelect() {
     return AppCard(
       padding: const EdgeInsets.all(8),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text("$label : "),
+          const Text("Background Images : "),
           AppCard(
             color: Theme.of(context).colorScheme.secondaryContainer,
             child: TextButton(
-              onPressed: () => button_pickImage(setting),
-              child: const Text("Select Image"),
+              onPressed: button_onSelectImage, 
+              child: const Text("Add / Remove Images")
             ),
-          ),
-          if (settings_manager.getSetting(setting) != "") AppCard(
-            color: Theme.of(context).colorScheme.secondaryContainer,
-            child: IconButton(
-              onPressed: () => button_removeImage(setting),
-              icon: const Icon(Icons.cancel),
-            ),
-          ),
+          )
         ],
       ),
     );

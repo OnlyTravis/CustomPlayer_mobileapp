@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:song_player/code/settings_manager.dart';
@@ -14,7 +15,7 @@ enum Pages {
   settingsPage,
 }
 
-class AppNavigationWrap extends StatelessWidget {
+class AppNavigationWrap extends StatefulWidget {
   final Widget child;
   final String page_name;
   final Pages page;
@@ -22,58 +23,40 @@ class AppNavigationWrap extends StatelessWidget {
   final List<Widget> actions;
   const AppNavigationWrap({super.key, required this.page_name, this.page = Pages.otherPage, this.padding, this.actions = const [], required this.child});
 
+  @override
+  State<StatefulWidget> createState() => _AppNavigationWrapState();
+}
+class _AppNavigationWrapState extends State<AppNavigationWrap> {
+  String image_background_path = "";
+
   String getBackgroundImagePath() {
-    switch (page) {
-      case Pages.otherPage:
-        return settings_manager.getSetting(Settings.defaultImagePath);
+    final List<String> imageList = settings_manager.getSetting(Settings.bgImagePaths).cast<String>();
+    if (imageList.isEmpty) return "";
 
-      case Pages.songListPage:
-        final String path = settings_manager.getSetting(Settings.songListImagePath);
-        if (path.isEmpty) return settings_manager.getSetting(Settings.defaultImagePath);
-        return settings_manager.getSetting(Settings.songListImagePath);
+    return imageList[Random().nextInt(imageList.length)];
+  }
 
-      case Pages.playerPage:
-        final String path = settings_manager.getSetting(Settings.playerImagePath);
-        if (path.isEmpty) return settings_manager.getSetting(Settings.defaultImagePath);
-        return settings_manager.getSetting(Settings.playerImagePath);
-      
-      case Pages.queuePage:
-        final String path = settings_manager.getSetting(Settings.queueImagePath);
-        if (path.isEmpty) return settings_manager.getSetting(Settings.defaultImagePath);
-        return settings_manager.getSetting(Settings.queueImagePath);
-      
-      case Pages.playlistPage:
-        final String path = settings_manager.getSetting(Settings.playlistImagePath);
-        if (path.isEmpty) return settings_manager.getSetting(Settings.defaultImagePath);
-        return settings_manager.getSetting(Settings.playlistImagePath);
-
-      case Pages.tagsPage:
-        final String path = settings_manager.getSetting(Settings.tagImagePath);
-        if (path.isEmpty) return settings_manager.getSetting(Settings.defaultImagePath);
-        return settings_manager.getSetting(Settings.tagImagePath);
-      
-      case Pages.settingsPage:
-        final String path = settings_manager.getSetting(Settings.settingImagePath);
-        if (path.isEmpty) return settings_manager.getSetting(Settings.defaultImagePath);
-        return settings_manager.getSetting(Settings.settingImagePath);
-    }
+  @override
+  void initState() {
+    setState(() {
+      image_background_path = getBackgroundImagePath();
+    });
+    super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    String image_background_path = getBackgroundImagePath();
-
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-        title: Text(page_name),
-        actions: actions,
+        title: Text(widget.page_name),
+        actions: widget.actions,
       ),
       body: Column(
         children: [
           Expanded(
             child: Container(
-              padding: padding,
+              padding: widget.padding,
               width: double.infinity,
               decoration: image_background_path.isNotEmpty?BoxDecoration(
                 image: DecorationImage(
@@ -81,7 +64,7 @@ class AppNavigationWrap extends StatelessWidget {
                   fit: BoxFit.cover,
                 ),
               ):null,
-              child: child,
+              child: widget.child,
             )
           ),
           const CommonNavigationBar()
