@@ -44,7 +44,9 @@ class FileHandler {
 
   Future<void> initFileHandler() async {
     // 1. Get Permission for song files
-    if (!await requestPermission(Permission.manageExternalStorage)) return;
+    if (!await requestPermission(Permission.audio)) return;
+    if (!await requestPermission(Permission.videos)) return;
+    if (!await requestPermission(Permission.storage)) return;
 
     // 2. Set "Music" folder directory
     String path = (await getExternalStorageDirectory())?.path ?? "";
@@ -59,7 +61,7 @@ class FileHandler {
     folder_path += "/Music";
     root_folder_path = folder_path;
 
-    // 3. Fetch files / directories inside the folder
+    // 3. Fetch files & directories inside the folder
     List<FileSystemEntity> entity_list = Directory(folder_path).listSync(recursive: true);
     file_list = entity_list.where((entity) => isMediaFile(entity.path))
       .map((file) {

@@ -38,7 +38,7 @@ class SettingsManager {
     values[Settings.containerOpacity.value] = 200;
     values[Settings.backgroundImageBrightness.value] = 1.0;
 
-    values[Settings.bgImagePaths.value] = <List<String>>[];
+    values[Settings.bgImagePaths.value] = [].cast<String>();
   }
   void constructNotifiers() {
     for (final entry in values.entries) {
@@ -49,7 +49,13 @@ class SettingsManager {
   Future<void> initSettings() async {
     final Directory dir = await getApplicationDocumentsDirectory();
     json_file = File("${dir.path}/settings.json");
-    if (!json_file.existsSync()) {
+
+    print("((((((((((((((((((((object))))))))))))))))))))");
+    print(json_file.existsSync());
+    print(json_file.readAsStringSync());
+        print("((((((((((((((((((((object))))))))))))))))))))");
+
+    if (json_file.existsSync()) {
       useDefaultSettings();
       constructNotifiers();
       updateJsonFile();

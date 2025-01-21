@@ -15,7 +15,7 @@ Future<void> main() async {
 
   await db.addDefaultPlaylist();
 
-  runApp(SongPlayerApp());
+  runApp(const SongPlayerApp());
 }
 
 class SongPlayerApp extends StatefulWidget {
@@ -76,7 +76,7 @@ class _SongPlayerAppState extends State<SongPlayerApp> with WidgetsBindingObserv
           brightness: is_dark_mode?Brightness.dark: Brightness.light,
         ),
       ),
-      home: PlayerPage(),
+      home: const PlayerPage(),
     );
   }
 }

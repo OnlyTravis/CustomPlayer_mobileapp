@@ -53,7 +53,7 @@ class _BackgroundImagePageState extends State<BackgroundImagePage> {
   Future<void> init() async {
     final String tmp_path = (await getApplicationDocumentsDirectory()).path;
     setState(() {
-      imagePathList = settings_manager.getSetting(Settings.bgImagePaths).cast<String>();
+      imagePathList = settings_manager.getSetting(Settings.bgImagePaths);
       folder_path = tmp_path;
     });
   }
