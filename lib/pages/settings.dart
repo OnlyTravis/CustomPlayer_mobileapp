@@ -121,6 +121,7 @@ class _SettingsPageState extends State<SettingsPage> {
     values[Settings.isDarkMode] = settings_manager.getSetting(Settings.isDarkMode);
     values[Settings.containerOpacity] = settings_manager.getSetting(Settings.containerOpacity);
     values[Settings.backgroundImageBrightness] = settings_manager.getSetting(Settings.backgroundImageBrightness);
+    values[Settings.noRepeatFor] = settings_manager.getSetting(Settings.noRepeatFor);
     setPickerColor(values[Settings.interfaceColor]);
   }
 
@@ -143,6 +144,7 @@ class _SettingsPageState extends State<SettingsPage> {
             children: [
               DropDownInput("Playlist Buffer Length", Settings.playlistBufferLength, [5, 10, 20, 30]),
               DropDownInput("Queue Max Length", Settings.maxQueueLength, [50, 100, 200, 300, -1]),
+              DropDownInput("No Repeat Song For", Settings.noRepeatFor, [0, 1, 2, 5, 10, 20]),
               UIColorPicker(),
               SliderInput("Container Opacity", Settings.containerOpacity, 0, 255, true),
               SliderInput("Background Brightness", Settings.backgroundImageBrightness, 0, 1, false),

@@ -248,7 +248,9 @@ class MusicHandler extends BaseAudioHandler with SeekHandler {
   }
   Future<void> addRandomFromPlaylist() async {
     int previous = (song_queue.isEmpty)? -1 : song_queue[song_queue.length-1].song_id;
-    while (song_queue.length - current_queue_index < 10) {
+    int max_songs = settings_manager.getSetting(Settings.playlistBufferLength);
+
+    while (song_queue.length - current_queue_index < max_songs) {
       int next_song = Random().nextInt(playing_playlist.song_id_list.length);
 
       if (playing_playlist.song_id_list.length != 1) {
@@ -333,6 +335,7 @@ class MusicHandler extends BaseAudioHandler with SeekHandler {
     // 2. Sync playing state
     if (audio_player.playing) await video_controller.play();
     await video_controller.seekTo(audio_player.position + const Duration(milliseconds: 350));
+    queue.add(queue.value);
   }
   void setAppOpened(bool is_opened) {
     if (app_opened == is_opened) return;

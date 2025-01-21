@@ -18,8 +18,8 @@ enum Settings {
   isDarkMode(3),
   containerOpacity(4),
   backgroundImageBrightness(5),
-
-  bgImagePaths(6);
+  bgImagePaths(6),
+  noRepeatFor(7);
 
   const Settings(this.value);
   final int value;
@@ -37,8 +37,8 @@ class SettingsManager {
     values[Settings.isDarkMode.value] = false;
     values[Settings.containerOpacity.value] = 200;
     values[Settings.backgroundImageBrightness.value] = 1.0;
-
     values[Settings.bgImagePaths.value] = [].cast<String>();
+    values[Settings.noRepeatFor.value] = 0;
   }
   void constructNotifiers() {
     for (final entry in values.entries) {
