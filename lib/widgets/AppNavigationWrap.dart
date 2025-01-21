@@ -27,7 +27,8 @@ class AppNavigationWrap extends StatefulWidget {
   State<StatefulWidget> createState() => _AppNavigationWrapState();
 }
 class _AppNavigationWrapState extends State<AppNavigationWrap> {
-  String image_background_path = "";
+  String imageBackgroundPath = "";
+  double backgroundBrightness = 1;
 
   String getBackgroundImagePath() {
     final List<String> imageList = settings_manager.getSetting(Settings.bgImagePaths).cast<String>();
@@ -38,8 +39,12 @@ class _AppNavigationWrapState extends State<AppNavigationWrap> {
 
   @override
   void initState() {
+    settings_manager.notifiers[Settings.backgroundImageBrightness.value]?.addListener(() {
+      setState(() {});
+    });
     setState(() {
-      image_background_path = getBackgroundImagePath();
+      imageBackgroundPath = getBackgroundImagePath();
+      backgroundBrightness = settings_manager.getSetting(Settings.backgroundImageBrightness);
     });
     super.initState();
   }
@@ -58,9 +63,11 @@ class _AppNavigationWrapState extends State<AppNavigationWrap> {
             child: Container(
               padding: widget.padding,
               width: double.infinity,
-              decoration: image_background_path.isNotEmpty?BoxDecoration(
+              decoration: imageBackgroundPath.isNotEmpty?BoxDecoration(
+                color: Colors.black,
                 image: DecorationImage(
-                  image: FileImage(File(image_background_path)),
+                  opacity: backgroundBrightness,
+                  image: FileImage(File(imageBackgroundPath)),
                   fit: BoxFit.cover,
                 ),
               ):null,

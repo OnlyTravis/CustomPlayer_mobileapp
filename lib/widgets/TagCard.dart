@@ -25,7 +25,7 @@ class TagCard extends StatelessWidget {
               child: const Icon(Icons.cancel),
             ),
             Container(
-              padding: EdgeInsets.all(6),
+              padding: const EdgeInsets.all(6),
               child: Text(value.tag_name),
             ),
             Container(

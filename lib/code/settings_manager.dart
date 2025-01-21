@@ -17,8 +17,9 @@ enum Settings {
   interfaceColor(2),
   isDarkMode(3),
   containerOpacity(4),
+  backgroundImageBrightness(5),
 
-  bgImagePaths(5);
+  bgImagePaths(6);
 
   const Settings(this.value);
   final int value;
@@ -35,6 +36,7 @@ class SettingsManager {
     values[Settings.interfaceColor.value] = [255, 202, 248, 255]; // RGBA
     values[Settings.isDarkMode.value] = false;
     values[Settings.containerOpacity.value] = 200;
+    values[Settings.backgroundImageBrightness.value] = 1.0;
 
     values[Settings.bgImagePaths.value] = <List<String>>[];
   }

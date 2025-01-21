@@ -120,6 +120,7 @@ class _SettingsPageState extends State<SettingsPage> {
     values[Settings.interfaceColor] = settings_manager.getSetting(Settings.interfaceColor).cast<int>();
     values[Settings.isDarkMode] = settings_manager.getSetting(Settings.isDarkMode);
     values[Settings.containerOpacity] = settings_manager.getSetting(Settings.containerOpacity);
+    values[Settings.backgroundImageBrightness] = settings_manager.getSetting(Settings.backgroundImageBrightness);
     setPickerColor(values[Settings.interfaceColor]);
   }
 
@@ -142,7 +143,8 @@ class _SettingsPageState extends State<SettingsPage> {
               DropDownInput("Playlist Buffer Length", Settings.playlistBufferLength, [5, 10, 20, 30]),
               DropDownInput("Queue Max Length", Settings.maxQueueLength, [50, 100, 200, 300, -1]),
               UIColorPicker(),
-              SliderInput("Container Opacity", Settings.containerOpacity, 0, 255),
+              SliderInput("Container Opacity", Settings.containerOpacity, 0, 255, true),
+              SliderInput("Background Brightness", Settings.backgroundImageBrightness, 0, 1, false),
               UIBrightnessPicker(),
               BGImageSelect(),
               ImportDatabase(),
@@ -181,7 +183,7 @@ class _SettingsPageState extends State<SettingsPage> {
       ),
     );
   }
-  Widget SliderInput(String label, Settings setting, int min, int max) {
+  Widget SliderInput(String label, Settings setting, int min, int max, bool is_int) {
     return AppCard(
       padding: const EdgeInsets.all(8),
       child: Row(
@@ -189,16 +191,15 @@ class _SettingsPageState extends State<SettingsPage> {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Text("$label : "),
-          Text(values[Settings.containerOpacity].toString()),
-          SizedBox(
-            width: 175,
+          Text(values[setting].toString()),
+          Flexible(
             child: Slider(
               min: min.toDouble(),
               max: max.toDouble(),
-              value: values[Settings.containerOpacity].toDouble(),
+              value: is_int?values[setting].toDouble():values[setting],
               onChanged: (value) => {
                 setState(() {
-                  values[Settings.containerOpacity] = value.toInt();
+                  values[setting] = is_int?value.toInt():(value*100).floor()/100;
                 })
               },
               onChangeEnd: (_) {
