@@ -28,7 +28,8 @@ class _QueuePageState extends State<QueuePage> {
   @override
   Widget build(BuildContext context) {
     return AppNavigationWrap(
-      page_name: "Current Queue", 
+      pageName: "Current Queue",
+      pageIcon: Icons.queue_music, 
       page: Pages.queuePage,
       child: ListView(
         children: [

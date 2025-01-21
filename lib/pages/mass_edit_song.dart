@@ -144,7 +144,8 @@ class _MassEditSongPageState extends State<MassEditSongPage> {
   @override
   Widget build(BuildContext context) {
     return AppNavigationWrap(
-      page_name: "Mass Edit Song", 
+      pageName: "Mass Edit Song",
+      pageIcon: Icons.music_note,
       padding: const EdgeInsets.all(8),
       child: ListView(
         children: [

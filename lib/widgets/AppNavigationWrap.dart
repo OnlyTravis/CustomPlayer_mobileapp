@@ -17,11 +17,12 @@ enum Pages {
 
 class AppNavigationWrap extends StatefulWidget {
   final Widget child;
-  final String page_name;
+  final String pageName;
   final Pages page;
+  final IconData? pageIcon;
   final EdgeInsetsGeometry? padding;
   final List<Widget> actions;
-  const AppNavigationWrap({super.key, required this.page_name, this.page = Pages.otherPage, this.padding, this.actions = const [], required this.child});
+  const AppNavigationWrap({super.key, required this.pageName, this.page = Pages.otherPage, this.pageIcon, this.padding, this.actions = const [], required this.child});
 
   @override
   State<StatefulWidget> createState() => _AppNavigationWrapState();
@@ -39,9 +40,9 @@ class _AppNavigationWrapState extends State<AppNavigationWrap> {
 
   @override
   void initState() {
-    settings_manager.notifiers[Settings.backgroundImageBrightness.value]?.addListener(() {
-      setState(() {});
-    });
+    settings_manager.notifiers[Settings.backgroundImageBrightness.value]?.addListener(onBGBrightnessChange);
+    settings_manager.notifiers[Settings.bgImagePaths.value]?.addListener(onBGChange);
+
     setState(() {
       imageBackgroundPath = getBackgroundImagePath();
       backgroundBrightness = settings_manager.getSetting(Settings.backgroundImageBrightness);
@@ -49,12 +50,28 @@ class _AppNavigationWrapState extends State<AppNavigationWrap> {
     super.initState();
   }
 
+  void onBGBrightnessChange() {
+    setState(() {
+      backgroundBrightness = settings_manager.getSetting(Settings.backgroundImageBrightness);
+    });
+  }
+  void onBGChange() {
+    final List<dynamic> list = settings_manager.getSetting(Settings.bgImagePaths);
+
+    if (list.isEmpty || list.length == 1) {
+      setState(() {
+        imageBackgroundPath = getBackgroundImagePath();
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-        title: Text(widget.page_name),
+        leading: (widget.pageIcon == null)?null:Icon(widget.pageIcon),
+        title: Text(widget.pageName),
         actions: widget.actions,
       ),
       body: Column(
@@ -78,5 +95,12 @@ class _AppNavigationWrapState extends State<AppNavigationWrap> {
         ]
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    settings_manager.notifiers[Settings.backgroundImageBrightness.value]?.removeListener(onBGBrightnessChange);
+    settings_manager.notifiers[Settings.bgImagePaths.value]?.removeListener(onBGChange);
+    super.dispose();
   }
 }

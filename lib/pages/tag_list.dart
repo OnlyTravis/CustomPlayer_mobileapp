@@ -70,7 +70,8 @@ class _TagListPageState extends State<TagListPage> {
   @override
   Widget build(BuildContext context) {
     return AppNavigationWrap(
-      page_name: "Tag List",
+      pageName: "Tag List",
+      pageIcon: Icons.tag,
       page: Pages.tagsPage,
       padding: const EdgeInsets.all(8),
       child: ListView(

@@ -52,9 +52,10 @@ class _BackgroundImagePageState extends State<BackgroundImagePage> {
 
   Future<void> init() async {
     final String tmp_path = (await getApplicationDocumentsDirectory()).path;
+    final tmp_list = settings_manager.getSetting(Settings.bgImagePaths);
     setState(() {
-      imagePathList = settings_manager.getSetting(Settings.bgImagePaths);
       folder_path = tmp_path;
+      if (tmp_list.isNotEmpty) imagePathList = tmp_list.cast<String>();
     });
   }
 
@@ -68,7 +69,8 @@ class _BackgroundImagePageState extends State<BackgroundImagePage> {
   @override
   Widget build(BuildContext context) {
     return AppNavigationWrap(
-      page_name: "Background Images", 
+      pageName: "Background Images", 
+      pageIcon: Icons.image,
       padding: const EdgeInsets.all(8),
       child: ListView(
         children: [

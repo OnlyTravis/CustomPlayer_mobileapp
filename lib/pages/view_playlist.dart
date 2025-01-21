@@ -91,7 +91,8 @@ class _ViewPlaylistPageState extends State<ViewPlaylistPage> {
   @override
   Widget build(BuildContext context) {
     return AppNavigationWrap(
-      page_name: "Viewing Playlist", 
+      pageName: "Viewing Playlist",
+      pageIcon: Icons.playlist_add,
       child: Scaffold(
         backgroundColor: Colors.transparent,
         body: Padding(

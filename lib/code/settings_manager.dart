@@ -50,12 +50,7 @@ class SettingsManager {
     final Directory dir = await getApplicationDocumentsDirectory();
     json_file = File("${dir.path}/settings.json");
 
-    print("((((((((((((((((((((object))))))))))))))))))))");
-    print(json_file.existsSync());
-    print(json_file.readAsStringSync());
-        print("((((((((((((((((((((object))))))))))))))))))))");
-
-    if (json_file.existsSync()) {
+    if (!json_file.existsSync()) {
       useDefaultSettings();
       constructNotifiers();
       updateJsonFile();

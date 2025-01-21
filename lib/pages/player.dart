@@ -52,7 +52,8 @@ class _PlayerPageState extends State<PlayerPage> {
   @override
   Widget build(BuildContext context) {
     return AppNavigationWrap(
-      page_name: "Audio Player", 
+      pageName: "Audio Player", 
+      pageIcon: Icons.play_arrow,
       page: Pages.playerPage,
       child: Center(
         child: AppCard(

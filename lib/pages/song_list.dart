@@ -166,7 +166,8 @@ class _SongListPageState extends State<SongListPage> {
   @override
   Widget build(BuildContext context) {
     return AppNavigationWrap(
-      page_name: "Song List - /$current_folder", 
+      pageName: "Song List - /$current_folder", 
+      pageIcon: Icons.folder,
       page: Pages.songListPage,
       actions: [
         IconButton(

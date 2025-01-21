@@ -46,7 +46,6 @@ class FileHandler {
     // 1. Get Permission for song files
     if (!await requestPermission(Permission.audio)) return;
     if (!await requestPermission(Permission.videos)) return;
-    if (!await requestPermission(Permission.storage)) return;
 
     // 2. Set "Music" folder directory
     String path = (await getExternalStorageDirectory())?.path ?? "";
