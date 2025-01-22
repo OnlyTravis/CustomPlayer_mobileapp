@@ -26,10 +26,10 @@ class _SettingsPageState extends State<SettingsPage> {
   Map<Settings, dynamic> values = {};
   Map<Settings, String> image_paths = {};
 
-  Color picker_color = const Color(0xff443a49);
+  Color pickedColor = const Color(0xff443a49);
 
   Future<void> button_applyChange() async {
-    values[Settings.interfaceColor] = [(picker_color.r*255).toInt(), (picker_color.g*255).toInt(), (picker_color.b*255).toInt(), (picker_color.a*255).toInt()];
+    values[Settings.interfaceColor] = [(pickedColor.r*255).toInt(), (pickedColor.g*255).toInt(), (pickedColor.b*255).toInt(), (pickedColor.a*255).toInt()];
     for (final entry in values.entries) {
       settings_manager.setSetting(entry.key, entry.value);
     }
@@ -110,8 +110,14 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
+  void onColorChange(Color color) {
+    setState(() { 
+      pickedColor = color;
+      changed = true;
+    });
+  }
   void setPickerColor(List<int> arr) {
-    picker_color = Color.fromARGB(arr[3], arr[0], arr[1], arr[2]);
+    pickedColor = Color.fromARGB(arr[3], arr[0], arr[1], arr[2]);
   }
 
   void initValues() {
@@ -145,7 +151,7 @@ class _SettingsPageState extends State<SettingsPage> {
               DropDownInput("Playlist Buffer Length", Settings.playlistBufferLength, [5, 10, 20, 30]),
               DropDownInput("Queue Max Length", Settings.maxQueueLength, [50, 100, 200, 300, -1]),
               DropDownInput("No Repeat Song For", Settings.noRepeatFor, [0, 1, 2, 5, 10, 20]),
-              UIColorPicker(),
+              _UIColorPicker(pickedColor: pickedColor, onColorChange: onColorChange),
               SliderInput("Container Opacity", Settings.containerOpacity, 0, 255, true),
               SliderInput("Background Brightness", Settings.backgroundImageBrightness, 0, 1, false),
               UIBrightnessPicker(),
@@ -214,28 +220,6 @@ class _SettingsPageState extends State<SettingsPage> {
           ),
           Text(max.toString()),
         ],
-      ),
-    );
-  }
-  Widget UIColorPicker() {
-    return AppCard(
-      child: Padding(
-        padding: const EdgeInsets.all(8),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text("UI Theme Color : "),
-            ColorPicker(
-              pickerColor: picker_color, 
-              onColorChanged: (Color color) {
-                setState(() { 
-                  picker_color = color;
-                  changed = true;
-                });
-              }
-            )
-          ],
-        ),
       ),
     );
   }
@@ -347,6 +331,62 @@ class _SettingsPageState extends State<SettingsPage> {
               onPressed: button_exportFiles, 
               child: const Text("Click to Export Files")
             ),
+          )
+        ],
+      ),
+    );
+  }
+}
+class _UIColorPicker extends StatefulWidget {
+  final Color pickedColor;
+  final void Function(Color) onColorChange;
+  
+  const _UIColorPicker({required this.pickedColor, required this.onColorChange});
+
+  @override
+  State<_UIColorPicker> createState() => _UIColorPickerState();
+}
+class _UIColorPickerState extends State<_UIColorPicker> {
+  bool expanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return AppCard(
+      padding: const EdgeInsets.all(8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          InkWell(
+            onTap: () {
+              setState(() {
+                expanded = !expanded;
+              });
+            },
+            child: SizedBox(
+              height: 48,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text("UI Theme Color : "),
+                  Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      if (!expanded) Container(
+                        width: 128,
+                        height: 48,
+                        color: widget.pickedColor,
+                      ),
+                      const SizedBox(width: 16),
+                      Icon(expanded?Icons.keyboard_arrow_up:Icons.keyboard_arrow_down),
+                    ],
+                  )
+                ],
+              ),
+            ),
+          ),
+          if (expanded) ColorPicker(
+            pickerColor: widget.pickedColor, 
+            onColorChanged: widget.onColorChange
           )
         ],
       ),
