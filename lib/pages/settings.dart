@@ -96,10 +96,10 @@ class _SettingsPageState extends State<SettingsPage> {
   void button_exportFiles() {
     confirm(context, 
       "Confirm Export", 
-      "Are you sure you want to export the database & settings file?\n(The files will be exported to /Music)", 
+      "Are you sure you want to export the database file?\n(The files will be exported to /Download)", 
       () async {
         await db.exportDatabase();
-        if (mounted) alert(context, "Database & Settings Exported!");
+        if (mounted) alert(context, "Database Exported!");
       }, 
       () => {}
     );

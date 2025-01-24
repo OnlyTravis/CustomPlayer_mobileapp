@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:song_player/code/file_handler.dart';
-import 'package:song_player/code/settings_manager.dart';
 import 'package:song_player/pages/playlist.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -631,7 +630,6 @@ class DatabaseHandler {
   Future<void> exportDatabase() async {
     final File database_file = File(database_path);
     
-    await database_file.copy("${file_handler.root_folder_path}/Song_Player.db");
-    await settings_manager.json_file.copy("${file_handler.root_folder_path}/Song_Player_settings.json");
+    await database_file.copy("/storage/emulated/0/Download/Song_Player.db");
   }
 }
