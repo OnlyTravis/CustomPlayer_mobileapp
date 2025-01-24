@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 
 import 'package:song_player/code/audio_handler.dart';
@@ -8,6 +10,7 @@ import 'package:song_player/pages/player.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
   await initSettingsManager();
   await initDatabase();
   await initAudioHandler();
@@ -46,23 +49,37 @@ class _SongPlayerAppState extends State<SongPlayerApp> with WidgetsBindingObserv
   Color colorFromArr(List<int> arr) {
     return Color.fromARGB(arr[3], arr[0], arr[1], arr[2]);
   }
-
   void updateUI() {
     setState(() {
       seed_color = colorFromArr(settings_manager.getSetting(Settings.interfaceColor).cast<int>());
       is_dark_mode = settings_manager.getSetting(Settings.isDarkMode);
     });
   }
+  
+  Future<void> preloadImages() async {
+    await Future.delayed(const Duration(milliseconds: 100));
+
+    final imageList = settings_manager.getSetting(Settings.bgImagePaths);
+    if (imageList.isEmpty) return;
+
+    for (final String path in imageList) {
+      if (mounted) await precacheImage(FileImage(File(path)), context);
+    }
+  }
 
   @override
   void initState() {
+    super.initState();
+
     WidgetsBinding.instance.addObserver(this);
 
+    // 1. Update & Listen for UI settings change
     updateUI();
     settings_manager.notifiers[Settings.interfaceColor.value]?.addListener(updateUI);
     settings_manager.notifiers[Settings.isDarkMode.value]?.addListener(updateUI);
 
-    super.initState();
+    // 2. Preload Images
+    preloadImages();
   }
 
   @override
