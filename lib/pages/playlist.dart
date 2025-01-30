@@ -19,6 +19,7 @@ class _PlaylistPageState extends State<PlaylistPage> {
   static const List<String> playlistTypes = ["Empty Playlist", "Filter Playlist"]; 
   bool is_creatingPlaylist = false;
   int create_playlist_type = 0;
+  int playingPlaylistId = -1;
 
   Future<void> initPlaylistList() async {
     List<Playlist> tmp = await db.getAllPlaylists(sort: SortingStyle.nameAsc);
@@ -50,10 +51,16 @@ class _PlaylistPageState extends State<PlaylistPage> {
     );
   }
   Future<void> button_onPlayPlaylist(Playlist playlist) async {
+    setState(() {
+      playingPlaylistId = playlist.playlist_id;
+    });
     await audio_handler.playPlaylist(playlist);
   }
   Future<void> button_onStopPlaylist() async {
     await audio_handler.stopPlaylist();
+    setState(() {
+      playingPlaylistId = -1;
+    });
   }
 
   @override
@@ -73,7 +80,7 @@ class _PlaylistPageState extends State<PlaylistPage> {
   }
 
   Widget playlistCard(Playlist playlist) {
-    bool is_playing = (audio_handler.is_playing_playlist && (audio_handler.playing_playlist.playlist_id == playlist.playlist_id));
+    bool is_playing = (playingPlaylistId == playlist.playlist_id);
     return GestureDetector(
       onTap: () => button_viewPlaylist(playlist),
       child: AppCard(
