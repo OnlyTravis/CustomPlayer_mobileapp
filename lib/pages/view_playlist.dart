@@ -92,7 +92,7 @@ class _ViewPlaylistPageState extends State<ViewPlaylistPage> {
   Widget build(BuildContext context) {
     return AppNavigationWrap(
       pageName: "Viewing Playlist",
-      pageIcon: Icons.playlist_add,
+      pageIcon: const Icon(Icons.playlist_add),
       child: Scaffold(
         backgroundColor: Colors.transparent,
         body: Padding(

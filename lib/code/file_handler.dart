@@ -90,7 +90,7 @@ class FileHandler {
       .toList()
       ..sort((entity_1, entity_2) {
         if ((entity_1.file_type == FileType.folder && entity_2.file_type == FileType.folder) || (entity_1.file_type != FileType.folder && entity_2.file_type != FileType.folder)) {
-          return entity_1.file_name.compareTo(entity_2.file_name);
+          return entity_1.file_name.toLowerCase().compareTo(entity_2.file_name.toLowerCase());
         }
         return (entity_1.file_type == FileType.folder)?-1:1;
       });

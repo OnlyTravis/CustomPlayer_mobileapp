@@ -127,7 +127,7 @@ class _EditSongPageState extends State<EditSongPage> {
   Widget build(BuildContext context) {
     return AppNavigationWrap(
       pageName: "Viewing Song",
-      pageIcon: Icons.music_note,
+      pageIcon: const Icon(Icons.music_note),
       child: Scaffold(
         backgroundColor: Colors.transparent,
         body: Padding(

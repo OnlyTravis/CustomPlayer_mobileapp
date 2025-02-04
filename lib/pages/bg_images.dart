@@ -70,7 +70,7 @@ class _BackgroundImagePageState extends State<BackgroundImagePage> {
   Widget build(BuildContext context) {
     return AppNavigationWrap(
       pageName: "Background Images", 
-      pageIcon: Icons.image,
+      pageIcon: const Icon(Icons.image),
       padding: const EdgeInsets.all(8),
       child: ListView(
         children: [

@@ -141,7 +141,7 @@ class _SettingsPageState extends State<SettingsPage> {
   Widget build(BuildContext context) {
     return AppNavigationWrap(
       pageName: "Settings", 
-      pageIcon: Icons.settings,
+      pageIcon: const Icon(Icons.settings),
       page: Pages.settingsPage,
       padding: const EdgeInsets.all(8),
       child: Stack(

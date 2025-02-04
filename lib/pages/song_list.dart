@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:song_player/code/audio_handler.dart';
 import 'package:song_player/code/database.dart';
@@ -167,7 +169,7 @@ class _SongListPageState extends State<SongListPage> {
   Widget build(BuildContext context) {
     return AppNavigationWrap(
       pageName: "Song List - /$current_folder", 
-      pageIcon: Icons.folder,
+      pageIcon: const Icon(Icons.folder),
       page: Pages.songListPage,
       actions: [
         IconButton(
@@ -260,8 +262,11 @@ class _SongListPageState extends State<SongListPage> {
                         icon: const Icon(Icons.add)
                       ),
                       IconButton(
-                        onPressed: () => audio_handler.replaceCurrent(song), 
-                        icon: const Icon(Icons.play_arrow)
+                        onPressed: () async {
+                          await audio_handler.replaceCurrent(song);
+                          setState(() {});
+                        }, 
+                        icon: const Icon(Icons.play_arrow),
                       ),
                     ],
                   ),

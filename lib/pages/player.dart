@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import 'package:song_player/code/audio_handler.dart';
@@ -24,6 +26,7 @@ class PlayerPage extends StatefulWidget {
 }
 
 class _PlayerPageState extends State<PlayerPage> {
+  late final StreamSubscription streamSubscription;
 
   void button_toFullScreen() {
     Navigator.of(context).push(
@@ -42,18 +45,32 @@ class _PlayerPageState extends State<PlayerPage> {
 
   @override
   void initState() {
-    audio_handler.queue.listen((queue) {
+    streamSubscription = audio_handler.queue.listen((queue) {
       if (mounted) setState(() {});
     });
 
     super.initState();
+  }
+  @override
+  void dispose() {
+    streamSubscription.cancel();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return AppNavigationWrap(
       pageName: "Audio Player", 
-      pageIcon: Icons.play_arrow,
+      pageIcon: StreamBuilder<bool>(
+        stream: audio_handler.playbackState.map((state) => state.playing), 
+        builder: (context, snapshot) {
+          bool is_playing = snapshot.data ?? false;
+          return IconButton(
+            onPressed: is_playing?audio_handler.pause: audio_handler.play, 
+            icon: Icon(is_playing?Icons.pause : Icons.play_arrow),
+          );
+        }
+      ),
       page: Pages.playerPage,
       child: Center(
         child: AppCard(

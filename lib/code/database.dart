@@ -284,10 +284,10 @@ class DatabaseHandler {
     switch (sort.sort_type) {
       case 0: return;
       case 1:
-        song_list.sort((a, b) => (sort.is_asc?1:-1)*a.song_name.compareTo(b.song_name));
+        song_list.sort((a, b) => (sort.is_asc?1:-1)*a.song_name.toLowerCase().compareTo(b.song_name.toLowerCase()));
         return;
       case 2:
-        song_list.sort((a, b) => (sort.is_asc?1:-1)*a.song_path.compareTo(b.song_path));
+        song_list.sort((a, b) => (sort.is_asc?1:-1)*a.song_path.toLowerCase().compareTo(b.song_path.toLowerCase()));
         return;
     }
   }

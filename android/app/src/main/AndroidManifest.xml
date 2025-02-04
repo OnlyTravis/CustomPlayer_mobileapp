@@ -11,12 +11,13 @@
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
-
+    <!-- Add to application on development
+        android:allowBackup="false"
+        android:fullBackupOnly="false"
+    -->
     <application
         android:label="Custom Player"
         android:name="${applicationName}"
-        android:allowBackup="false"
-        android:fullBackupOnly="false"
         android:icon="@mipmap/ic_launcher">
         <activity
             android:name="com.ryanheise.audioservice.AudioServiceActivity"

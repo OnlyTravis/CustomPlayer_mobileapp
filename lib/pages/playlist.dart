@@ -67,7 +67,7 @@ class _PlaylistPageState extends State<PlaylistPage> {
   Widget build(BuildContext context) {
     return AppNavigationWrap(
       pageName: "Playlists", 
-      pageIcon: Icons.queue_music,
+      pageIcon: const Icon(Icons.queue_music),
       page: Pages.settingsPage,
       padding: const EdgeInsets.all(10),
       child: ListView(

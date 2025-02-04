@@ -19,7 +19,7 @@ class AppNavigationWrap extends StatefulWidget {
   final Widget child;
   final String pageName;
   final Pages page;
-  final IconData? pageIcon;
+  final Widget? pageIcon;
   final EdgeInsetsGeometry? padding;
   final List<Widget> actions;
   const AppNavigationWrap({super.key, required this.pageName, this.page = Pages.otherPage, this.pageIcon, this.padding, this.actions = const [], required this.child});
@@ -70,7 +70,7 @@ class _AppNavigationWrapState extends State<AppNavigationWrap> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-        leading: (widget.pageIcon == null)?null:Icon(widget.pageIcon),
+        leading: widget.pageIcon,
         title: Text(widget.pageName),
         actions: widget.actions,
       ),

@@ -29,7 +29,7 @@ class _QueuePageState extends State<QueuePage> {
   Widget build(BuildContext context) {
     return AppNavigationWrap(
       pageName: "Current Queue",
-      pageIcon: Icons.queue_music, 
+      pageIcon: const Icon(Icons.queue_music), 
       page: Pages.queuePage,
       child: ListView(
         children: [
