@@ -129,7 +129,7 @@ class MusicHandler extends BaseAudioHandler with SeekHandler {
       }
 
       skipToNext();
-      if (app_opened) need_sync = true;
+      if (!app_opened) need_sync = true;
     });
   }
 
@@ -320,7 +320,6 @@ class MusicHandler extends BaseAudioHandler with SeekHandler {
     if ((video_position - audio_player.position).abs() > const Duration(milliseconds: 300)) {
       video_controller.seekTo(audio_player.position + const Duration(milliseconds: 350));
     }
-    
   }
   Future<void> syncVideoPlayer() async {
     if (!video_is_inited) return;
@@ -328,12 +327,14 @@ class MusicHandler extends BaseAudioHandler with SeekHandler {
     // 1. Sync audio source (might be playing the next song)
     if (need_sync) {
       await playFileVideo(song_queue[current_queue_index]);
-    } else {
-      await video_controller.pause();
     }
 
     // 2. Sync playing state
-    if (audio_player.playing) await video_controller.play();
+    if (audio_player.playing) {
+      await video_controller.play();
+    } else {
+      await video_controller.pause();
+    }
     await video_controller.seekTo(audio_player.position + const Duration(milliseconds: 350));
     queue.add(queue.value);
   }
@@ -371,6 +372,7 @@ class MusicHandler extends BaseAudioHandler with SeekHandler {
     await playFile(song_queue[current_queue_index]);
     queue.add(queue.value);
     if (is_playing_playlist) await addRandomFromPlaylist();
+    if (!app_opened) need_sync = true;
 
     return true;
   }
@@ -380,6 +382,7 @@ class MusicHandler extends BaseAudioHandler with SeekHandler {
     current_queue_index--;    
     playFile(song_queue[current_queue_index]);
     queue.add(queue.value);
+    if (!app_opened) need_sync = true;
 
     return true;
   }
@@ -389,6 +392,7 @@ class MusicHandler extends BaseAudioHandler with SeekHandler {
     current_queue_index = index;
     playFile(song_queue[current_queue_index]);
     queue.add(queue.value);
+    if (!app_opened) need_sync = true;
 
     return true;
   }
