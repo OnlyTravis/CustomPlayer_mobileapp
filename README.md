@@ -25,6 +25,7 @@ Clone this repo with
 git clone https://github.com/OnlyTravis/CustomPlayer_mobile-app.git
 ```
 Connect to your phone via USB
+
 You can check if your phone is connected via
 ```bash
 flutter devices
