@@ -366,7 +366,7 @@ class MusicHandler extends BaseAudioHandler with SeekHandler {
     audio_player.seek(Duration.zero);
   }
   @override Future<bool> skipToNext() async {
-    if (song_queue.length < current_queue_index+1) return false;
+    if (current_queue_index+1 >= song_queue.length) return false;
 
     current_queue_index++;
     await playFile(song_queue[current_queue_index]);
