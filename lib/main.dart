@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 
 import 'package:song_player/code/audio_handler.dart';
@@ -81,7 +80,7 @@ class _SongPlayerAppState extends State<SongPlayerApp> with WidgetsBindingObserv
     settings_manager.notifiers[Settings.interfaceColor.value]?.addListener(updateUI);
     settings_manager.notifiers[Settings.isDarkMode.value]?.addListener(updateUI);
 
-    // 2. Preload Images
+    // 2. Preload Images & Enable PiP
     preloadImages();
   }
 

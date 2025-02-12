@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'dart:math';
 
+import 'package:floating/floating.dart';
 import 'package:flutter/material.dart';
 
 import 'package:song_player/code/audio_handler.dart';
@@ -26,6 +28,7 @@ class PlayerPage extends StatefulWidget {
 }
 
 class _PlayerPageState extends State<PlayerPage> {
+  final floating = Floating();
   late final StreamSubscription streamSubscription;
 
   void button_toFullScreen() {
@@ -43,10 +46,32 @@ class _PlayerPageState extends State<PlayerPage> {
     setState(() {});
   }
 
+  Future<void> enablePip() async {
+    const rational = Rational.landscape();
+    final screenSize = MediaQuery.of(context).size * MediaQuery.of(context).devicePixelRatio;
+    final height = screenSize.width ~/ rational.aspectRatio;
+
+    final arguments = OnLeavePiP(
+			aspectRatio: rational,
+			sourceRectHint: Rectangle<int>(
+				0,
+				(screenSize.height ~/ 2) - (height ~/ 2),
+				screenSize.width.toInt(),
+				height,
+			),
+		);
+
+    await floating.enable(arguments);
+  }
+
   @override
   void initState() {
     streamSubscription = audio_handler.queue.listen((queue) {
       if (mounted) setState(() {});
+    });
+
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      enablePip();
     });
 
     super.initState();
@@ -54,6 +79,7 @@ class _PlayerPageState extends State<PlayerPage> {
   @override
   void dispose() {
     streamSubscription.cancel();
+    floating.cancelOnLeavePiP();
     super.dispose();
   }
 
@@ -72,6 +98,7 @@ class _PlayerPageState extends State<PlayerPage> {
         }
       ),
       page: Pages.playerPage,
+      pipOnLeave: true,
       child: Center(
         child: AppCard(
           padding: const EdgeInsets.symmetric(vertical: 8),
@@ -102,16 +129,14 @@ class _PlayerPageState extends State<PlayerPage> {
         child: Stack(
           children: [
             Center(
-              child: audio_handler.is_playing_video
-                ? AspectRatio(
-                    aspectRatio: audio_handler.video_controller.value.aspectRatio,
-                    child: VideoPlayer(audio_handler.video_controller),
-                  )
-                : Icon(
-                    Icons.music_note,
-                    color: Theme.of(context).colorScheme.secondaryFixedDim,
-                    size: 128,
-                  ),
+              child: audio_handler.is_playing_video ? AspectRatio(
+                aspectRatio: audio_handler.video_controller.value.aspectRatio,
+                child: VideoPlayer(audio_handler.video_controller),
+              ) : Icon(
+                Icons.music_note,
+                color: Theme.of(context).colorScheme.secondaryFixedDim,
+                size: 128,
+              ),
             ),
             Row(
               mainAxisAlignment: MainAxisAlignment.end,

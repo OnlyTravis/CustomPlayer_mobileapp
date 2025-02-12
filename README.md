@@ -3,7 +3,6 @@
 My First Flutter Project
 
 A music playing Android app that supports both video and audio playing.
-(Useable but still WIP)
 
 ## Features
 * Supports both Audio & Video playing
@@ -13,12 +12,12 @@ A music playing Android app that supports both video and audio playing.
 * Change individual song volume
 * Create Playlists of your own
 * Create Playlists automatically based on tag filters
-* PIP mode (WIP)
+* PIP mode 
 * Export / Import Database
 * Customizable pages background image
 * Customizable theme / theme color
 
-## Installation (manual)
+## Manual Installation
 Make sure flutter is install on your device.
 Clone this repo with
 ```bash
@@ -30,9 +29,8 @@ You can check if your phone is connected via
 ```bash
 flutter devices
 ```
-After your phone is connected, run the following commands
+After your phone is connected, run the following commands in the cloned repo
 ```bash
-# Android OS with aarch64 architecture
 flutter build apk --release --target-platform android-arm64
 flutter install
 ```

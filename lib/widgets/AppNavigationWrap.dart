@@ -1,9 +1,12 @@
 import 'dart:io';
 import 'dart:math';
 
+import 'package:floating/floating.dart';
 import 'package:flutter/material.dart';
+import 'package:song_player/code/audio_handler.dart';
 import 'package:song_player/code/settings_manager.dart';
 import 'package:song_player/widgets/NavigationBar.dart';
+import 'package:video_player/video_player.dart';
 
 enum Pages {
   otherPage, 
@@ -22,7 +25,18 @@ class AppNavigationWrap extends StatefulWidget {
   final Widget? pageIcon;
   final EdgeInsetsGeometry? padding;
   final List<Widget> actions;
-  const AppNavigationWrap({super.key, required this.pageName, this.page = Pages.otherPage, this.pageIcon, this.padding, this.actions = const [], required this.child});
+  final bool pipOnLeave;
+
+  const AppNavigationWrap({
+    super.key, 
+    required this.pageName, 
+    this.page = Pages.otherPage, 
+    this.pageIcon, 
+    this.padding, 
+    this.actions = const [], 
+    this.pipOnLeave = false,
+    required this.child
+  });
 
   @override
   State<StatefulWidget> createState() => _AppNavigationWrapState();
@@ -67,6 +81,28 @@ class _AppNavigationWrapState extends State<AppNavigationWrap> {
 
   @override
   Widget build(BuildContext context) {
+    return widget.pipOnLeave ? PiPSwitcher(
+			childWhenDisabled: mainScaffold(), 
+			childWhenEnabled: Center(
+				child: audio_handler.is_playing_video ? AspectRatio(
+						aspectRatio: audio_handler.video_controller.value.aspectRatio,
+						child: VideoPlayer(audio_handler.video_controller),
+				) : AspectRatio(
+					aspectRatio: 4/3,
+					child: Container(
+						color: const Color.fromARGB(255, 86, 86, 86),
+						child: const Center(
+							child: Icon(
+								Icons.music_note,
+								size: 32,
+							),
+						),
+					),
+				),
+			),
+		) : mainScaffold();
+  }
+  Widget mainScaffold() {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.primaryContainer,
