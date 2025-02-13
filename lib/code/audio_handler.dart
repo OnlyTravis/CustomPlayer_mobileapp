@@ -155,7 +155,7 @@ class MusicHandler extends BaseAudioHandler with SeekHandler {
     await playFile(song);
     queue.add(queue.value);
   }
-  void moveQueueItem(int index, int new_index) {
+  Future<void> moveQueueItem(int index, int new_index) async {
     // 1. Check if request is valid
     if (index < 0 || index >= song_queue.length || new_index < 0 || index == new_index) return;
     if (new_index >= song_queue.length) new_index = song_queue.length-1;
@@ -183,6 +183,7 @@ class MusicHandler extends BaseAudioHandler with SeekHandler {
         current_queue_index++;
       }
     }
+    await addRandomFromPlaylist();
     queue.add(queue.value);
   }
   Future<void> removeQueueItem_(int index) async {
@@ -199,6 +200,8 @@ class MusicHandler extends BaseAudioHandler with SeekHandler {
       current_queue_index--;
     }
     song_queue.removeAt(index);
+
+    if (is_playing_playlist) await addRandomFromPlaylist();
     queue.add(queue.value);
   }
   Future<void> updateSongsInQueue() async {

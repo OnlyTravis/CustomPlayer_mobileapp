@@ -35,14 +35,18 @@ class _SongPlayerAppState extends State<SongPlayerApp> with WidgetsBindingObserv
   void didChangeAppLifecycleState(AppLifecycleState state) {
     switch (state) {
       case AppLifecycleState.resumed:
-        if (!audio_handler.app_opened) {
-          audio_handler.setAppOpened(true);
-          preloadImages();
-        }
+        audio_handler.setAppOpened(true);
+        preloadImages();
         break;
-      case AppLifecycleState.hidden:
+      
+      case AppLifecycleState.inactive:
+        audio_handler.setAppOpened(true);
+        break;
+
+      case AppLifecycleState.paused:
         audio_handler.setAppOpened(false);
         break;
+
       default:
         break;
     }

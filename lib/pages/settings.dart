@@ -156,8 +156,7 @@ class _SettingsPageState extends State<SettingsPage> {
               SliderInput("Background Brightness", Settings.backgroundImageBrightness, 0, 1, false),
               UIBrightnessPicker(),
               BGImageSelect(),
-              ImportDatabase(),
-              ExportFiles()
+              ImportExportCard(),
             ],
           ),
           if (changed) Align(
@@ -300,38 +299,28 @@ class _SettingsPageState extends State<SettingsPage> {
       ),
     );
   }
-  Widget ImportDatabase() {
+  Widget ImportExportCard() {
     return AppCard(
       padding: const EdgeInsets.all(8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text("Import Database File :"),
+          const Text("File Import Export : "),
+          const SizedBox(height: 4),
           AppCard( 
             color: Theme.of(context).colorScheme.secondaryContainer,
             child: TextButton(
               onPressed: button_importDatabase, 
               child: const Text("Click to Import Database")
             ),
-          )
-        ],
-      ),
-    );
-  }
-  Widget ExportFiles() {
-    return AppCard(
-      padding: const EdgeInsets.all(8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text("Export Database & Settings File :"),
+          ),
           AppCard( 
             color: Theme.of(context).colorScheme.secondaryContainer,
             child: TextButton(
               onPressed: button_exportFiles, 
-              child: const Text("Click to Export Files")
+              child: const Text("Click to Export Database")
             ),
-          )
+          ),
         ],
       ),
     );
