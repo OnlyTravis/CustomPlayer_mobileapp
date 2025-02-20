@@ -29,13 +29,19 @@ class PlayerPage extends StatefulWidget {
 
 class _PlayerPageState extends State<PlayerPage> {
 	final floating = Floating();
-	late final StreamSubscription streamSubscription;
+	late StreamSubscription streamSubscription;
 
 	Future<void> button_toFullScreen() async {
-		Navigator.of(context).push(
-			MaterialPageRoute(builder: (context) => const FullScreenVideo())
-		);
 		await streamSubscription.cancel();
+
+		if (mounted) Navigator.of(context).push(
+			MaterialPageRoute(builder: (context) => const FullScreenVideo())
+		).then((_) {
+			streamSubscription = audio_handler.queue.listen((_) {
+				if (mounted) setState(() {});
+			});
+			setState(() {});
+		});
 	}
 
 	void button_changePlayMode() {

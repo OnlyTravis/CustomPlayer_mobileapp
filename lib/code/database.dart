@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/material.dart';
 import 'package:song_player/code/file_handler.dart';
 import 'package:song_player/pages/playlist.dart';
 import 'package:sqflite/sqflite.dart';
@@ -253,8 +254,7 @@ class DatabaseHandler {
 			case "withoutTag":
 				return !song.tag_id_list.contains(condition.value);
 			default:	
-				print("Somthings went wrong in 'matchCondition' in database.dart");
-				return false;
+				throw ErrorDescription("Somthings went wrong in 'matchCondition' in database.dart");
 		}
 	}
 	Future<void> updateSongDatabase(List<FileEntity> entity_list) async {

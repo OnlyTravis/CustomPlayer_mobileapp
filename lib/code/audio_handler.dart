@@ -48,6 +48,7 @@ class MusicHandler extends BaseAudioHandler with SeekHandler {
 	bool is_playing_video = false;
 	bool need_sync = false;
 	bool app_opened = true;
+	bool waiting_for_queue_item = true;
 
 	Function? _videoPlay;
 	Function? _videoPause;
@@ -112,7 +113,7 @@ class MusicHandler extends BaseAudioHandler with SeekHandler {
 		});
 	}
 	void _listenForSongEnd() {
-		audio_player.playerStateStream.listen((playerState) {
+		audio_player.playerStateStream.listen((playerState) async {
 			if (playerState.processingState != ProcessingState.completed) return;
 
 			switch (playing_mode) {
@@ -128,22 +129,25 @@ class MusicHandler extends BaseAudioHandler with SeekHandler {
 					break;
 			}
 
-			skipToNext();
+			if (!await skipToNext()) waiting_for_queue_item = true;
 			if (!app_opened) need_sync = true;
 		});
 	}
 
-	Future<void> addToQueue(Song song) async {
-		song_queue.add(song);
-		if (song_queue.length == current_queue_index+1) {
-			await playFile(song);
-		}
-
-		if (song_queue.length > settings_manager.getSetting(Settings.maxQueueLength)) {
+	void checkQueueLength({ broadcastChange = true }) {
+		if (song_queue.length > settings_manager.getSetting(Settings.maxQueueLength) && current_queue_index > 0) {
 			song_queue.removeAt(0);
 			current_queue_index--;
 		}
-
+		if (broadcastChange) queue.add(queue.value);
+	}
+	Future<void> addToQueue(Song song) async {
+		song_queue.add(song);
+		if (waiting_for_queue_item) {
+			if (current_queue_index != 0) current_queue_index++;
+			await playFile(song, broadcastChange: false);
+		}
+		checkQueueLength(broadcastChange: false);
 		queue.add(queue.value);
 	}
 	Future<void> replaceCurrent(Song song) async {
@@ -153,7 +157,6 @@ class MusicHandler extends BaseAudioHandler with SeekHandler {
 			song_queue[current_queue_index] = song;
 		}
 		await playFile(song);
-		queue.add(queue.value);
 	}
 	Future<void> moveQueueItem(int index, int new_index) async {
 		// 1. Check if request is valid
@@ -269,11 +272,12 @@ class MusicHandler extends BaseAudioHandler with SeekHandler {
 		} 
 	}
 
-	Future<void> playFile(Song song) async {
+	Future<void> playFile(Song song, { broadcastChange = true }) async {
+		waiting_for_queue_item = false;
 		is_playing_video = song.is_video;
 		await playFileVideo(song);
 		await playFileAudio(song);
-		queue.add(queue.value);
+		if (broadcastChange) queue.add(queue.value);
 	}
 	Future<void> playFileAudio(Song song) async {
 		await audio_player.setAudioSource(AudioSource.file("${file_handler.root_folder_path}/${song.song_path}"));
@@ -372,10 +376,9 @@ class MusicHandler extends BaseAudioHandler with SeekHandler {
 		if (current_queue_index+1 >= song_queue.length) return false;
 
 		current_queue_index++;
-		await playFile(song_queue[current_queue_index]);
-		queue.add(queue.value);
 		if (is_playing_playlist) await addRandomFromPlaylist();
 		if (!app_opened) need_sync = true;
+		await playFile(song_queue[current_queue_index]);
 
 		return true;
 	}
@@ -383,19 +386,17 @@ class MusicHandler extends BaseAudioHandler with SeekHandler {
 		if (current_queue_index < 1) return false;
 
 		current_queue_index--;    
-		playFile(song_queue[current_queue_index]);
-		queue.add(queue.value);
 		if (!app_opened) need_sync = true;
+		playFile(song_queue[current_queue_index]);
 
 		return true;
 	}
-	Future skipToIndex(int index) async {
+	Future<bool> skipToIndex(int index) async {
 		if (index < 0 || index >= song_queue.length) return false;
 
 		current_queue_index = index;
-		playFile(song_queue[current_queue_index]);
-		queue.add(queue.value);
 		if (!app_opened) need_sync = true;
+		playFile(song_queue[current_queue_index]);
 
 		return true;
 	}
