@@ -253,23 +253,37 @@ class MusicHandler extends BaseAudioHandler with SeekHandler {
 		await pause();
 	}
 	Future<void> addRandomFromPlaylist() async {
-		int previous = (song_queue.isEmpty)? -1 : song_queue[song_queue.length-1].song_id;
-		int max_songs = settings_manager.getSetting(Settings.playlistBufferLength);
+		int no_repeat_for = settings_manager.getSetting(Settings.noRepeatFor);
+		final int buffer_length = settings_manager.getSetting(Settings.playlistBufferLength);
+		final int max_length = settings_manager.getSetting(Settings.maxQueueLength);
 
-		while (song_queue.length - current_queue_index < max_songs) {
-			int next_song = Random().nextInt(playing_playlist.song_id_list.length);
+		final List<int> pool = [...playing_playlist.song_id_list.toSet()];
+		if (pool.length-1 < no_repeat_for) no_repeat_for = pool.length-1;
 
-			if (playing_playlist.song_id_list.length != 1) {
-				while (next_song == previous) next_song = Random().nextInt(playing_playlist.song_id_list.length); 
-			}
+		// 1. Removing previous songs from the pool
+		for (int i = 0; i < no_repeat_for; i++) {
+			if (song_queue.length - i - 1 < 0) break;
+			if (pool.length == 1) break;
 
-			song_queue.add(await db.getSongFromId(playing_playlist.song_id_list[next_song]));
-			if (song_queue.length > settings_manager.getSetting(Settings.maxQueueLength)) {
+			pool.remove(song_queue[song_queue.length-1-i].song_id);
+		}
+
+		// 2. Loop until buffer songs = settings
+		while (song_queue.length - current_queue_index < buffer_length) {
+
+			// 2.1 Fetching random Song & Adding it to list
+			int next_song_id = pool[Random().nextInt(pool.length)];
+			song_queue.add(await db.getSongFromId(next_song_id));
+			if (song_queue.length > max_length) {
 				song_queue.removeAt(0);
 				current_queue_index--;
 			}
-			previous = next_song;
-		} 
+			
+			// 2.2 Updating pool
+			pool.remove(next_song_id);
+			final int addToPool = song_queue.length - no_repeat_for - 1;
+			if (addToPool >= 0) pool.add(song_queue[addToPool].song_id);
+		}
 	}
 
 	Future<void> playFile(Song song, { broadcastChange = true }) async {
